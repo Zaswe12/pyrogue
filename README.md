@@ -1,3 +1,4 @@
 # pyrogue  
 A small project I am working on.  
-requires pygame
+requires pygame  
+graphics by Dan

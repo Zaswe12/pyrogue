@@ -15,19 +15,19 @@ big = pygame.font.SysFont("monospace", 50)
 text = [log.render("", True, pygame.Color("black")) for i in range(5)] #for the updatelog function
 
 #loads graphics
-wall = pygame.image.load('wall.png').convert()
-statue = pygame.image.load('statue.png').convert()
-ground = pygame.image.load('ground.png').convert()
-upstair = pygame.image.load('upstair.png').convert()
-downstair = pygame.image.load('downstair.png').convert()
-player = pygame.image.load('player.png').convert()
-goblin = pygame.image.load('goblin.png').convert()
-rat = pygame.image.load('rat.png').convert()
-treasure = pygame.image.load('treasure.png').convert()
-bag = pygame.image.load('bag.png').convert()
-key = pygame.image.load('key.png').convert()
-keyinv = pygame.image.load('keyinv.png').convert()
-door = pygame.image.load('door.png').convert()
+wall = pygame.image.load('graphics/wall.png').convert()
+statue = pygame.image.load('graphics/statue.png').convert()
+ground = pygame.image.load('graphics/ground.png').convert()
+upstair = pygame.image.load('graphics/upstair.png').convert()
+downstair = pygame.image.load('graphics/downstair.png').convert()
+player = pygame.image.load('graphics/player.png').convert()
+goblin = pygame.image.load('graphics/goblin.png').convert()
+rat = pygame.image.load('graphics/rat.png').convert()
+treasure = pygame.image.load('graphics/treasure.png').convert()
+bag = pygame.image.load('graphics/bag.png').convert()
+key = pygame.image.load('graphics/key.png').convert()
+keyinv = pygame.image.load('graphics/keyinv.png').convert()
+door = pygame.image.load('graphics/door.png').convert()
 
 #creates player variables
 plhp = 10
@@ -40,11 +40,13 @@ invmax = -1
 haskey = False
 
 #loads map from text file
-mapfile = open('fl1r8.txt', 'r')
+mapfile = open('rooms/fl1r8.txt', 'r')
 floor, room = 1, 8
 downstrpos = (0, 0)
 upstrpos = (0, 0)
 keypos = (0, 0)
+dooropen = [(0, 0)]
+keyused = [(0, 0)]
 map1D = mapfile.read()
 map1D = map1D.replace('\n', '')
 backmap = [[0 for i in range(10)] for j in range(10)] #creates an empty 2D array
@@ -68,6 +70,9 @@ for i in range(10):
         if backmap[i][j] == '@':
             plx, ply = i, j
             foremap[i][j] = player
+            backmap[i][j] = ground
+        if backmap[i][j] == 'D':
+            foremap[i][j] = door
             backmap[i][j] = ground
 
 #puts the graphics on the screen
@@ -147,6 +152,10 @@ class Item():
 items = [
 #---ITEMS GO HERE---#
 Item("Sword", 'WEAP', 5, treasure, 8, (5, 1)),
+Item("Potion", 'HEAL', 5, bag),
+Item("Potion", 'HEAL', 5, bag),
+Item("Potion", 'HEAL', 5, bag),
+Item("Potion", 'HEAL', 5, bag),
 Item("Potion", 'HEAL', 5, bag)
 #---ITEMS END HERE---#
 ]
@@ -161,6 +170,7 @@ class Enemy():
     def __init__(self, name, hp, att, armor, image):
         self.name = name
         self.hp = hp
+        self.temphp = hp
         self.att = att
         self.armor = armor
         self.image = image
@@ -192,10 +202,15 @@ class Enemy():
                 self.eny -= 1
 
             foremap[self.enx][self.eny] = self.image
+
     def die(self):
         if self.hp <= 0:
             self.dead = True
             self.rmfl = (0, 0)
+
+    def recycle(self):
+        self.dead = False
+        self.hp = self.temphp
             
 enemies = [
 #---MONSTERS GO HERE---#
@@ -218,7 +233,7 @@ def getmon(x, y):
     #gets the monster that was already there
     for i in range(len(enemies)):
         if enemies[i].rmfl == (room, floor) and enemies[i].loaded == False:
-            for j in range(len(enemies.used)):
+            for j in range(len(enemies[i].used)):
                 if enemies[i].used[j] == (room, floor):
                     temp1 = True
             if temp == False:
@@ -275,6 +290,7 @@ def pickup():
     global keypos, haskey, invmax
     if (plx, ply) == keypos:
         haskey = True
+        keyused.append((room, floor))
         foremap[plx][ply] = player 
         backmap[plx][ply] = ground
     for i in range(len(items)):
@@ -342,6 +358,7 @@ def loadmap(direct):    #TO DO add the R = rat, G = goblin thing
     upstrpos = (0, 0)
     downstrpos = (0, 0)
     keypos = (0, 0)
+    temp = False
 
     for i in range(len(enemies)):
         enemies[i].loaded = False
@@ -365,7 +382,7 @@ def loadmap(direct):    #TO DO add the R = rat, G = goblin thing
         downstrpos = (0, 0)
         floor += 1
 
-    newmap = "fl" + str(floor) + "r" + str(room) + ".txt"
+    newmap = "rooms/fl" + str(floor) + "r" + str(room) + ".txt"
     newmap = open(newmap, 'r')
     newmap = newmap.read()
     newmap = newmap.replace('\n' , '')
@@ -389,11 +406,22 @@ def loadmap(direct):    #TO DO add the R = rat, G = goblin thing
                 foremap[i][j] = getmon(i, j)
                 backmap[i][j] = ground
             if backmap[i][j] == 'K':
-                foremap[i][j] = key
-                backmap[i][j] = key
-                keypos = (i, j)
+                for k in range(len(keyused)):
+                    if keyused[k] == (room, floor):
+                        temp = True
+                if temp == False:
+                    foremap[i][j] = key
+                    backmap[i][j] = key
+                    keypos = (i, j)
+                else:
+                    foremap[i][j] = ground
+                    backmap[i][j] = ground
             if backmap[i][j] == 'D':
-                foremap[i][j] = door
+                for k in range(len(dooropen)):
+                    if dooropen[k] != (room, floor):
+                        foremap[i][j] = door
+                    else:
+                        foremap[i][j] = ground
                 backmap[i][j] = ground
             if backmap[i][j] == 'T':
                 foremap[i][j] = getitem(i, j, 'T')
@@ -413,7 +441,7 @@ def loadmap(direct):    #TO DO add the R = rat, G = goblin thing
 #the move function, you dingus
 #it's messy, I know
 def move(x):
-    global foremap, plx, ply, haskey
+    global foremap, plx, ply, haskey, dooropen
     load = False #needed because I can't put elifs here
     attacked = False
     foremap[plx][ply] = backmap[plx][ply]
@@ -430,6 +458,7 @@ def move(x):
         if foremap[plx - 1][ply] == door and haskey == True:
             foremap[plx - 1][ply] = backmap[plx - 1][ply]
             haskey = False
+            dooropen.append((room, floor))
 
         elif foremap[plx - 1][ply] != wall and foremap[plx - 1][ply] != statue and foremap[plx - 1][ply] != door and load == False and attacked == False:
             plx -= 1
@@ -513,8 +542,10 @@ while True:
         else:
             foremap[enemies[i].enx][enemies[i].eny] = backmap[enemies[i].enx][enemies[i].eny]
             enemies[i].enx, enemies[i].eny = 0, 0
+            enemies[i].recycle()
 
     foremap[plx][ply] = player #makes it so you don't go invisible on a tile a monster died on
+    foremap[0][0] = wall
 
     screen.fill(pygame.Color("black"), (80, 500, 23, 15))
     screen.blit(log.render(str(plhp), True, pygame.Color("white")), (85, 500))
