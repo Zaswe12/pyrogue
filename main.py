@@ -2,6 +2,7 @@
 import pygame
 import sys
 import random
+#import pdb
 
 pygame.init()
 
@@ -34,6 +35,12 @@ plhp = 10
 maxhp = 10
 weapon = "fist"
 level = 1
+xp = 0
+nextlvl = [0 for i in range(50)]
+nextlvl[1] = 10
+for i in range(2, 50):
+    nextlvl[i] = nextlvl[i - 1] * 1.25 + 1
+    nextlvl[i] = int(nextlvl[i])
 platt = 1
 armor = 10
 invmax = -1
@@ -52,6 +59,7 @@ map1D = map1D.replace('\n', '')
 backmap = [[0 for i in range(10)] for j in range(10)] #creates an empty 2D array
 foremap = [[0 for i in range(10)] for j in range(10)]
 screen.blit(log.render("HP: " + str(plhp) + "/" + str(maxhp), True, pygame.Color("white")), (50, 500))
+screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (150, 500))
 
 #spilts the 1D array into 2D
 for i in range(10):
@@ -109,10 +117,67 @@ def updatelog(kind, thing = 0, value = 0):
         text[0] = log.render("You Pick up the " + thing, True, pygame.Color("white"))
     if kind == 'heal':
         text[0] = log.render("You healed yourself for " + value + " damage", True, pygame.Color("yellow"))
+    if kind == 'level':
+        text[0] = log.render("You are now level " + thing, True, pygame.Color("blue"))
+    if kind == 'stat':
+        text[0] = log.render("Your " + thing + " stat went up by " + value, True, pygame.Color("blue"))
     if kind == 'dead':
         text[0] = log.render("You died", True, pygame.Color("red"))
     
     screen.blit(text[0], newlog)
+
+def levelup(lvlxp):
+    global xp, maxhp, platt, armor
+    if xp >= lvlxp:
+        rn = random.randint(0, 2)
+        rnstat = 0
+        cursor = 0
+        updatelog('level', level + 1)
+        stats = ["HP", "Attack", "Defence"]
+
+        screen.fill(pygame.Color("black"), (0, 515, 600, 85))
+        for i in range(len(stats)):
+            screen.blit(log.render(stats[i], True, pygame.Color("white")), (30, 525 + i * 20))
+        screen.blit(log.render("_______", True, pygame.Color("white")), (30, 528))
+        pygame.display.update()
+
+        done = False
+        while not done:
+            select = pygame.event.wait()
+            screen.fill(pygame.Color("black"), (29, (cursor * 20) + 540, 150, 5))
+            if select.type == pygame.QUIT:
+                sys.exit()
+            elif select.type == pygame.KEYDOWN:
+                if select.key == pygame.K_DOWN and cursor + 1 != 3:
+                    cursor += 1
+                if select.key == pygame.K_UP and cursor - 1 != -1:
+                    cursor -= 1
+                if select.key == pygame.K_RETURN:
+                    choice = stats[cursor]
+                    done = True
+            screen.blit(log.render("_______", True, pygame.Color("white")), (30, (cursor * 20) + 528))
+            pygame.display.update()
+
+        if choice == "HP":
+            rnstat = random.randint(5, 10)
+            updatelog('stat', "HP", rnstat)
+            maxhp += rnstat
+            
+            screen.fill(pygame.Color("black"), (115, 500, 23, 15))
+            screen.blit(log.render(str(maxhp), True, pygame.Color("white")), (115, 500))
+        if choice == "Attack":
+            rnstat = random.randint(1, 3)
+            updatelog('stat', "attack", rnstat)
+            platt += rnstat
+        if choice == "Defence":
+            rnstat = random.randint(1, 3)
+            updatelog('stat', "defence", rnstat)
+            armor += rnstat
+
+        xp = 0
+        return level + 1
+    else:
+        return level 
 
 class Item():
     pos = (0, 0)
@@ -156,6 +221,10 @@ Item("Potion", 'HEAL', 5, bag),
 Item("Potion", 'HEAL', 5, bag),
 Item("Potion", 'HEAL', 5, bag),
 Item("Potion", 'HEAL', 5, bag),
+Item("Potion", 'HEAL', 5, bag),
+Item("Potion", 'HEAL', 5, bag),
+Item("Potion", 'HEAL', 5, bag),
+Item("Potion", 'HEAL', 5, bag),
 Item("Potion", 'HEAL', 5, bag)
 #---ITEMS END HERE---#
 ]
@@ -165,15 +234,41 @@ class Enemy():
     enx, eny = 0, 0
     loaded = False
     dead = False
+    keepgo = 'UP'
     rmfl = (0, 0)
     used = [(0, 0)]
-    def __init__(self, name, hp, att, armor, image):
+    def __init__(self, name, hp, att, armor, xp, image):
         self.name = name
         self.hp = hp
         self.temphp = hp
         self.att = att
         self.armor = armor
+        self.xp = xp
         self.image = image
+
+    def los(self):
+        x = self.enx
+        y = self.eny
+        if plx > x or ply > y:
+            while foremap[x + 1][y] != wall and x != plx:
+                if x + 2 <= len(foremap) - 1:
+                    x += 1
+                else:
+                    return False
+            while foremap[x][y + 1] != wall and y != ply:
+                if y + 2 <= len(foremap) - 1:
+                    y += 1
+                else:
+                    return False
+        if plx < x or ply < y:
+            while foremap[x - 1][y] != wall and x != plx:
+                x -= 1
+            while foremap[x][y - 1] != wall and y != ply:
+                y -= 1
+        if (x, y) == (plx, ply):
+            return True
+        else:
+            return False
 
     def enatt(self, hp):
         if self.loaded == True:
@@ -181,31 +276,76 @@ class Enemy():
             updatelog('dam', self.name, self.att + rn)
             return hp - (self.att + rn)
 
-    def enmv(self): #at least it works
+    def enmv(self, direct): #at least it works
         global foremap, plhp
+        pos = foremap[self.enx][self.eny]
+        down = foremap[self.enx + 1][self.eny]
+        up = foremap[self.enx - 1][self.eny]
+        right = foremap[self.enx][self.eny + 1]
+        left = foremap[self.enx][self.eny - 1]
+        rn = random.randint(0, 1)
         attacked = False
+
+        if rn == 0:
+            leri = 'LEFT'
+            updo = 'UP'
+        elif rn == 1:
+            leri = 'RIGHT'
+            updo = 'DOWN'
+
         if self.loaded == True and attacked == False:
-            if foremap[self.enx + 1][self.eny] == player or foremap[self.enx - 1][self.eny] == player or foremap[self.enx][self.eny + 1] == player or foremap[self.enx][self.eny - 1] == player:
+            if down == player or up == player or right == player or left == player:
                 plhp = self.enatt(plhp)
                 attacked = True
         if self.loaded == True and attacked == False:
 
             foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
 
-            if self.enx < plx and foremap[self.enx + 1][self.eny] == ground:
-                self.enx += 1
-            elif self.enx > plx and foremap[self.enx - 1][self.eny] == ground:
-                self.enx -= 1
-            elif self.eny < ply and foremap[self.enx][self.eny + 1] == ground:
-                self.eny += 1
-            elif self.eny > ply and foremap[self.enx][self.eny - 1] == ground:
-                self.eny -= 1
+            if self.los() == True:
+                if self.enx < plx and down != wall:
+                    self.enx += 1
+                elif self.enx > plx and up != wall:
+                    self.enx -= 1
+                elif self.eny < ply and right != wall:
+                    self.eny += 1
+                elif self.eny > ply and left != wall:
+                    self.eny -= 1
+
+            else:
+                if direct == 'DOWN':
+                    if down != wall:
+                        self.enx += 1
+                    else:
+                        foremap[self.enx][self.eny] = self.image
+                        return leri
+                elif direct == 'UP':
+                    if up != wall:
+                        self.enx -= 1
+                    else:
+                        foremap[self.enx][self.eny] = self.image
+                        return leri
+                elif direct == 'RIGHT':
+                    if right != wall:
+                        self.eny += 1
+                    else:
+                        foremap[self.enx][self.eny] = self.image
+                        return updo
+                elif direct == 'LEFT':
+                    if left != wall:
+                        self.eny -= 1
+                    else:
+                        foremap[self.enx][self.eny] = self.image
+                        return updo
 
             foremap[self.enx][self.eny] = self.image
+        return direct
 
     def die(self):
+        global xp
         if self.hp <= 0:
             self.dead = True
+            loaded = False
+            xp += self.xp
             self.rmfl = (0, 0)
 
     def recycle(self):
@@ -214,16 +354,16 @@ class Enemy():
             
 enemies = [
 #---MONSTERS GO HERE---#
-Enemy("Goblin", 5, 0, 5, goblin),
-Enemy("Goblin", 5, 0, 5, goblin),
-Enemy("Goblin", 5, 0, 5, goblin),
-Enemy("Goblin", 5, 0, 5, goblin),
-Enemy("Goblin", 5, 0, 5, goblin),
-Enemy("Rat", 3, 0, 3, rat),
-Enemy("Rat", 3, 0, 3, rat),
-Enemy("Rat", 3, 0, 3, rat),
-Enemy("Rat", 3, 0, 3, rat),
-Enemy("Rat", 3, 0, 3, rat)
+Enemy("Goblin", 5, 0, 5, 2, goblin),
+Enemy("Goblin", 5, 0, 5, 2, goblin),
+Enemy("Goblin", 5, 0, 5, 2, goblin),
+Enemy("Goblin", 5, 0, 5, 2, goblin),
+Enemy("Goblin", 5, 0, 5, 2, goblin),
+Enemy("Rat", 3, 0, 3, 1, rat),
+Enemy("Rat", 3, 0, 3, 1, rat),
+Enemy("Rat", 3, 0, 3, 1, rat),
+Enemy("Rat", 3, 0, 3, 1, rat),
+Enemy("Rat", 3, 0, 3, 1, rat)
 #---NONSTERS END HERE---#
 ]
 
@@ -248,7 +388,7 @@ def getmon(x, y):
     temp = 0
     while True:
         rn = random.randint(0, len(enemies) - 1)
-        if enemies[rn].dead == False and enemies[rn].rmfl == (0, 0):
+        if enemies[rn].dead == False:
             enemies[rn].enx = x
             enemies[rn].eny = y
             enemies[rn].loaded = True
@@ -257,7 +397,7 @@ def getmon(x, y):
             updatelog('view', enemies[rn].name)
             return enemies[rn].image
         for i in range(len(enemies)):
-            if enemies[i].dead == True or enemies[i].rmfl != (0, 0):
+            if enemies[i].dead == True:
                 temp += 1
             if temp >= len(enemies):
                 return ground
@@ -534,11 +674,14 @@ while True:
             openinv()
         if event.key == pygame.K_COMMA:
             pickup()
+        if event.key == pygame.K_a:
+            xp += 1
 
     for i in range(len(enemies)):
         enemies[i].die()
         if enemies[i].dead == False:
-            enemies[i].enmv()
+            tempgo = enemies[i].keepgo
+            enemies[i].keepgo = enemies[i].enmv(tempgo)
         else:
             foremap[enemies[i].enx][enemies[i].eny] = backmap[enemies[i].enx][enemies[i].eny]
             enemies[i].enx, enemies[i].eny = 0, 0
@@ -548,12 +691,14 @@ while True:
     foremap[0][0] = wall
 
     screen.fill(pygame.Color("black"), (80, 500, 23, 15))
-    screen.blit(log.render(str(plhp), True, pygame.Color("white")), (85, 500))
+    screen.fill(pygame.Color("black"), (150, 500, 100, 15))
+    screen.blit(log.render(str(plhp), True, pygame.Color("white")), (86, 500)) #the weird number is used just to keep the value in the same place
+    screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (150, 500))
     if haskey == True:
         screen.blit(keyinv, (350, 500))
     else:
         screen.fill(pygame.Color("black"), (350, 500, 50, 50))
-    
+
     if plhp <= 0:
         updatelog('dead')
         screen.fill(pygame.Color("black"), (0, 0, 500, 500))
@@ -567,3 +712,4 @@ while True:
         for j in range(10):
             screen.blit(foremap[i][j], (j * 50, i * 50))
     pygame.display.update()
+    level = levelup(nextlvl[level])
