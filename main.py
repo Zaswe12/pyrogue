@@ -232,11 +232,13 @@ Item("Potion", 'HEAL', 5, bag)
 #the enemy class    I don't even know
 class Enemy():
     enx, eny = 0, 0
+    spawnx, spawny = 0, 0
     loaded = False
     dead = False
     keepgo = 'UP'
     rmfl = (0, 0)
     used = [(0, 0)]
+    diedin = [(0, 0, 0, 0)] # room, floor, x, y
     def __init__(self, name, hp, att, armor, xp, image):
         self.name = name
         self.hp = hp
@@ -346,6 +348,7 @@ class Enemy():
             self.dead = True
             loaded = False
             xp += self.xp
+            self.diedin.append((room, floor, self.spawnx, self.spawny))
             self.rmfl = (0, 0)
 
     def recycle(self):
@@ -370,6 +373,12 @@ Enemy("Rat", 3, 0, 3, 1, rat)
 def getmon(x, y):
     temp = False
     
+    #TO DO only that spot they won't spawn
+    for i in range(len(enemies)):
+        for j in range(len(enemies[i].diedin)):
+            if enemies[i].diedin[j] == (room, floor, x, y):
+                return ground
+
     #gets the monster that was already there
     for i in range(len(enemies)):
         if enemies[i].rmfl == (room, floor) and enemies[i].loaded == False:
@@ -380,6 +389,7 @@ def getmon(x, y):
                 enemies[i].loaded = True
                 enemies[i].enx = x
                 enemies[i].eny = y
+                enemies[i].spawnx, enemies[i].spawny = x, y
                 if enemies[i].dead == False:
                     updatelog('view', enemies[i].name)
                 return enemies[i].image
@@ -391,6 +401,7 @@ def getmon(x, y):
         if enemies[rn].dead == False:
             enemies[rn].enx = x
             enemies[rn].eny = y
+            enemies[rn].spawnx, enemies[rn].spawny = x, y
             enemies[rn].loaded = True
             enemies[rn].rmfl = (room, floor)
             enemies[rn].used.append(enemies[rn].rmfl)
