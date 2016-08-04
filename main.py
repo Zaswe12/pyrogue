@@ -2,7 +2,7 @@
 import pygame
 import sys
 import random
-#import pdb
+import pdb
 
 pygame.init()
 
@@ -31,11 +31,13 @@ keyinv = pygame.image.load('graphics/keyinv.png').convert()
 door = pygame.image.load('graphics/door.png').convert()
 
 #creates player variables
-plhp = 10
+plhp = 1000
 maxhp = 10
 weapon = "fist"
 level = 1
 xp = 0
+psn = False
+psnstep = 0
 nextlvl = [0 for i in range(50)]
 nextlvl[1] = 10
 for i in range(2, 50):
@@ -193,8 +195,14 @@ class Item():
         self.damage = damage
         self.rmfl = rmfl
 
+    def useitem(self):
+        global invmax
+        self.ininv = False
+        invmax -= 1
+        self.used.append(self.rmfl)
+
     def use(self):
-        global weapon, plhp, maxhp, invmax
+        global weapon, plhp, maxhp
         if self.kind == 'WEAP':
             if self.equip == False:
                 self.equip = True
@@ -207,11 +215,14 @@ class Item():
                 plhp = maxhp
             else:
                 plhp += self.value
-            self.ininv = False
-            invmax -= 1
-            self.used.append(self.rmfl)
+            self.useitem()
             screen.fill(pygame.Color("black"), (80, 500, 23, 15))
             screen.blit(log.render(str(plhp), True, pygame.Color("white")), (85, 500))
+        if self.kind == 'PSN' and self.ininv == True:
+            global psn
+            if psn == True:
+                psn = False
+                self.useitem()
             
 
 items = [
@@ -225,7 +236,14 @@ Item("Potion", 'HEAL', 5, bag),
 Item("Potion", 'HEAL', 5, bag),
 Item("Potion", 'HEAL', 5, bag),
 Item("Potion", 'HEAL', 5, bag),
-Item("Potion", 'HEAL', 5, bag)
+Item("Potion", 'HEAL', 5, bag),
+Item("Antidote", 'PSN', 0, bag),
+Item("Antidote", 'PSN', 0, bag),
+Item("Antidote", 'PSN', 0, bag),
+Item("Antidote", 'PSN', 0, bag),
+Item("Antidote", 'PSN', 0, bag),
+Item("Antidote", 'PSN', 0, bag),
+Item("Antidote", 'PSN', 0, bag)
 #---ITEMS END HERE---#
 ]
 
@@ -233,6 +251,7 @@ Item("Potion", 'HEAL', 5, bag)
 class Enemy():
     enx, eny = 0, 0
     spawnx, spawny = 0, 0
+    drop = 0
     loaded = False
     dead = False
     keepgo = 'UP'
@@ -273,9 +292,13 @@ class Enemy():
             return False
 
     def enatt(self, hp):
+        global psn
         if self.loaded == True:
             rn = random.randint(0, 2)
             updatelog('dam', self.name, self.att + rn)
+            if self.name == "Rat":
+                if random.randint(0, 100) >= 10:
+                    psn = True
             return hp - (self.att + rn)
 
     def enmv(self, direct): #at least it works
@@ -342,12 +365,30 @@ class Enemy():
             foremap[self.enx][self.eny] = self.image
         return direct
 
+    def dropitem(self):
+        if random.randint(0, 100) <= 12:
+            if floor < 5:
+                rn = random.randint(0, 100)
+                if rn <= 50:
+                    return getitem(self.enx, self.eny, 0, "Potion")
+                if rn > 50:
+                    return getitem(self.enx, self.eny, 0, "Antidote")
+            """if floor >= 5 and floor < 10:
+                #stuff
+            if floor >= 10:
+                #stuff"""
+
     def die(self):
-        global xp
+        global xp, foremap
+        self.drop = 0
         if self.hp <= 0:
             self.dead = True
             loaded = False
             xp += self.xp
+            if backmap[self.enx][self.eny] == ground:
+                self.drop = self.dropitem()
+            if self.drop == 0 or self.drop == None:
+                foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
             self.diedin.append((room, floor, self.spawnx, self.spawny))
             self.rmfl = (0, 0)
 
@@ -413,8 +454,15 @@ def getmon(x, y):
             if temp >= len(enemies):
                 return ground
 
-def getitem(x, y, kind):
+def getitem(x, y, kind, bagkind = 0):
     temp = False
+
+    if bagkind != 0: #for drops
+        for i in range(len(items)):
+            if items[i].name == bagkind and items[i].ininv == False:
+                items[i].pos = (x, y)
+                items[i].rmfl = (room, floor)
+                return items[i].image
 
     for i in range(len(items)):
         if items[i].rmfl == (room, floor):
@@ -687,6 +735,7 @@ while True:
             pickup()
         if event.key == pygame.K_a:
             xp += 1
+            floor = 3
 
     for i in range(len(enemies)):
         enemies[i].die()
@@ -694,7 +743,11 @@ while True:
             tempgo = enemies[i].keepgo
             enemies[i].keepgo = enemies[i].enmv(tempgo)
         else:
-            foremap[enemies[i].enx][enemies[i].eny] = backmap[enemies[i].enx][enemies[i].eny]
+            if enemies[i].drop != None and enemies[i].drop != 0:
+                foremap[enemies[i].enx][enemies[i].eny] = enemies[i].drop
+                backmap[enemies[i].enx][enemies[i].eny] = enemies[i].drop
+            screen.blit(foremap[enemies[i].enx][enemies[i].eny], (enemies[i].enx * 50, enemies[i].eny * 50))
+            pygame.display.update()
             enemies[i].enx, enemies[i].eny = 0, 0
             enemies[i].recycle()
 
@@ -710,6 +763,13 @@ while True:
     else:
         screen.fill(pygame.Color("black"), (350, 500, 50, 50))
 
+    if psn == True:
+        if psnstep % 4 == 0:
+            plhp -= 1
+        if psnstep >= 100:
+            psn = False
+        psnstep += 1
+
     if plhp <= 0:
         updatelog('dead')
         screen.fill(pygame.Color("black"), (0, 0, 500, 500))
@@ -722,5 +782,5 @@ while True:
     for i in range(10):
         for j in range(10):
             screen.blit(foremap[i][j], (j * 50, i * 50))
-    pygame.display.update()
     level = levelup(nextlvl[level])
+    pygame.display.update()
