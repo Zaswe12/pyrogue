@@ -1,6 +1,5 @@
 #=============================================BUGS======================================================
 #ALSO THAT STUPID ENEMY DOESN'T MOVE AND IS NOT REALLY THERE REEEEEEEEE
-#REEEEEEEEEE IT CRASHES WHEN THE los FUNTCTION OR SOMETHING FROM THE ENEMY CLASS GOES OUT OF RANGE
 #sometimes when you try to use an item it doesn't use it and it stays in your inventory
 #=======================================================================================================
 import pygame
@@ -330,20 +329,14 @@ class Enemy():
         x = self.enx
         y = self.eny
         if plx > x or ply > y:
-            while foremap[x + 1][y] != wall and foremap[x + 1][y] != statue and x != plx:
-                if x + 2 <= len(foremap) - 1:
+            while x < 9 and foremap[x + 1][y] != wall and foremap[x + 1][y] != statue and x != plx:
                     x += 1
-                else:
-                    return False
-            while foremap[x][y + 1] != wall  and foremap[x][y + 1] != statue and y != ply:
-                if y + 2 <= len(foremap) - 1:
+            while y < 9 and foremap[x][y + 1] != wall  and foremap[x][y + 1] != statue and y != ply:
                     y += 1
-                else:
-                    return False
         if plx < x or ply < y:
-            while foremap[x - 1][y] != wall  and foremap[x - 1][y] != statue and x != plx:
+            while x > 0 and foremap[x - 1][y] != wall  and foremap[x - 1][y] != statue and x != plx:
                 x -= 1
-            while foremap[x][y - 1] != wall  and foremap[x][y - 1] != statue and y != ply:
+            while y > 0 and foremap[x][y - 1] != wall  and foremap[x][y - 1] != statue and y != ply:
                 y -= 1
         if (x, y) == (plx, ply):
             return True
@@ -362,9 +355,9 @@ class Enemy():
             if self.name == "Snake":
                 if rnstatus <= 10:
                     psn = True
-                if rnstatus > 10 and rnstatus <= 20:
-                    para = True
-                    paracount = 3
+                #if rnstatus > 10 and rnstatus <= 20:
+                #    para = True
+                #    paracount = 3
             return hp - (self.att + rn)
         elif self.loaded == True and nodam == True:
             updatelog('nodam', self.name)
@@ -577,7 +570,7 @@ def getitem(x, y, kind, bagkind = 0):
     swordhigh = Item("Platinum Sword", 'WEAP', 6, treasure, 10)
     daggerlow = Item("Iron Dagger", 'WEAP', 4, treasure, 4)
     daggermed = Item("Steel Dagger", 'WEAP', 6, treasure, 6)
-    dagerhigh = Item("Platinum Dagger", 'WEAP', 8, treasure, 8)
+    daggerhigh = Item("Platinum Dagger", 'WEAP', 8, treasure, 8)
     axelow = Item("Iron Axe", 'WEAP', 0, treasure, 8)
     axemed = Item("Steel Axe", 'WEAP', 2, treasure, 10)
     axehigh = Item("Platinum Axe", 'WEAP', 4, treasure, 12)
