@@ -1,4 +1,8 @@
-#starts up pygame
+#=============================================BUGS======================================================
+#ALSO THAT STUPID ENEMY DOESN'T MOVE AND IS NOT REALLY THERE REEEEEEEEE
+#REEEEEEEEEE IT CRASHES WHEN THE los FUNTCTION OR SOMETHING FROM THE ENEMY CLASS GOES OUT OF RANGE
+#sometimes when you try to use an item it doesn't use it and it stays in your inventory
+#=======================================================================================================
 import pygame
 import sys
 import random
@@ -15,6 +19,42 @@ log = pygame.font.SysFont("monospace", 15)
 big = pygame.font.SysFont("monospace", 50)
 text = [log.render("", True, pygame.Color("black")) for i in range(5)] #for the updatelog function
 
+debug = False
+
+#Title Screen
+title = big.render("PyRogue", True, pygame.Color("green"))
+options = [
+log.render("Start Game", True, pygame.Color("white")),
+log.render("Debug", True, pygame.Color("white"))
+]
+screen.blit(title, (150, 150))
+for i in range(len(options)):
+    screen.blit(options[i], (150, 250 + (i * 25)))
+screen.blit(log.render(">", True, pygame.Color("white")), (140, 250))
+pygame.display.update()
+cursor = 0
+loop = True
+while loop:
+    choice = pygame.event.wait()
+    screen.fill(pygame.Color("black"), (135, 245, 15, 100))
+    if choice.type == pygame.QUIT:
+        sys.exit()
+    elif choice.type == pygame.KEYDOWN:
+        if choice.key == pygame.K_UP:
+            if cursor - 1 >= 0:
+                cursor -= 1
+        if choice.key == pygame.K_DOWN:
+            if cursor + 1 <= len(options) - 1:
+                cursor += 1
+        if choice.key == pygame.K_RETURN:
+            if cursor == 0:
+                loop = False
+            if cursor == 1:
+                debug = True
+                loop = False
+    screen.blit(log.render(">", True, pygame.Color("white")), (140, 250 + (cursor * 25)))
+    pygame.display.update()
+
 #loads graphics
 wall = pygame.image.load('graphics/wall.png').convert()
 statue = pygame.image.load('graphics/statue.png').convert()
@@ -24,6 +64,9 @@ downstair = pygame.image.load('graphics/downstair.png').convert()
 player = pygame.image.load('graphics/player.png').convert()
 goblin = pygame.image.load('graphics/goblin.png').convert()
 rat = pygame.image.load('graphics/rat.png').convert()
+snake = pygame.image.load('graphics/snake.png').convert()
+troll = pygame.image.load('graphics/troll.png').convert()
+guinea = pygame.image.load('graphics/guinea.png').convert()
 treasure = pygame.image.load('graphics/treasure.png').convert()
 bag = pygame.image.load('graphics/bag.png').convert()
 key = pygame.image.load('graphics/key.png').convert()
@@ -31,13 +74,21 @@ keyinv = pygame.image.load('graphics/keyinv.png').convert()
 door = pygame.image.load('graphics/door.png').convert()
 
 #creates player variables
-plhp = 1000
+plhp = 10
 maxhp = 10
 weapon = "fist"
 level = 1
 xp = 0
 psn = False
+para = False
+paracount = 0
+paramax = 0
 psnstep = 0
+speed = False
+speedturn = 0
+speedcount = 0
+nodam = False
+nodamcount = 0
 nextlvl = [0 for i in range(50)]
 nextlvl[1] = 10
 for i in range(2, 50):
@@ -46,7 +97,14 @@ for i in range(2, 50):
 platt = 1
 armor = 10
 invmax = -1
+itemrmflxy = [((0, 0), (0, 0))]
 haskey = False
+
+if debug == True:
+    plhp = 9999
+    maxhp = 9999
+    platt = 9999
+    armor = 9999
 
 #loads map from text file
 mapfile = open('rooms/fl1r8.txt', 'r')
@@ -115,14 +173,16 @@ def updatelog(kind, thing = 0, value = 0):
         text[0] = log.render("You miss the " + thing, True, pygame.Color("white"))
     if kind == 'dam':
         text[0] = log.render("The " + thing + " hits you for " + value + " damage", True, pygame.Color("red"))
+    if kind == 'nodam':
+        text[0] = log.render("The " + thing + " hits you but you don't take any damage", True, pygame.Color("white"))
     if kind == 'pick':
-        text[0] = log.render("You Pick up the " + thing, True, pygame.Color("white"))
+        text[0] = log.render("You pick up the " + thing, True, pygame.Color("white"))
     if kind == 'heal':
         text[0] = log.render("You healed yourself for " + value + " damage", True, pygame.Color("yellow"))
     if kind == 'level':
-        text[0] = log.render("You are now level " + thing, True, pygame.Color("blue"))
+        text[0] = log.render("You are now level " + thing, True, pygame.Color("green"))
     if kind == 'stat':
-        text[0] = log.render("Your " + thing + " stat went up by " + value, True, pygame.Color("blue"))
+        text[0] = log.render("Your " + thing + " stat went up by " + value, True, pygame.Color("green"))
     if kind == 'dead':
         text[0] = log.render("You died", True, pygame.Color("red"))
     
@@ -183,23 +243,23 @@ def levelup(lvlxp):
 
 class Item():
     pos = (0, 0)
+    rmfl = (0, 0)
     curs = -1
-    used = [(0, 0)]
+    listpos = None
     equip = False
     ininv = False
-    def __init__(self, name, kind, value, image, damage = 0, rmfl = 0): #the rmfl is only for treasure and damage is for weapons
+    def __init__(self, name, kind, value, image, damage = 0): #damage is for weapons
         self.name = name
         self.kind = kind
         self.value = value
         self.image = image
         self.damage = damage
-        self.rmfl = rmfl
 
     def useitem(self):
-        global invmax
+        global invmax, items
         self.ininv = False
         invmax -= 1
-        self.used.append(self.rmfl)
+        items.pop(self.listpos)
 
     def use(self):
         global weapon, plhp, maxhp
@@ -223,29 +283,28 @@ class Item():
             if psn == True:
                 psn = False
                 self.useitem()
+        if self.kind == 'PARA' and self.ininv == True:
+            global para
+            if para == True:
+                para = False
+                self.useitem()
+        if self.kind == 'SPD' and self.ininv == True:
+            global speed
+            if speed == False:
+                speed = True
+                self.useitem()
+        if self.kind == 'INV' and self.ininv == True:
+            global nodam
+            if nodam == False:
+                nodam = True
+                self.useitem()
             
 
-items = [
-#---ITEMS GO HERE---#
-Item("Sword", 'WEAP', 5, treasure, 8, (5, 1)),
-Item("Potion", 'HEAL', 5, bag),
-Item("Potion", 'HEAL', 5, bag),
-Item("Potion", 'HEAL', 5, bag),
-Item("Potion", 'HEAL', 5, bag),
-Item("Potion", 'HEAL', 5, bag),
-Item("Potion", 'HEAL', 5, bag),
-Item("Potion", 'HEAL', 5, bag),
-Item("Potion", 'HEAL', 5, bag),
-Item("Potion", 'HEAL', 5, bag),
-Item("Antidote", 'PSN', 0, bag),
-Item("Antidote", 'PSN', 0, bag),
-Item("Antidote", 'PSN', 0, bag),
-Item("Antidote", 'PSN', 0, bag),
-Item("Antidote", 'PSN', 0, bag),
-Item("Antidote", 'PSN', 0, bag),
-Item("Antidote", 'PSN', 0, bag)
-#---ITEMS END HERE---#
-]
+items = [Item("Potion", 'HEAL', 5, bag)]
+
+def additem(itemlist, itemobj):
+    itemobj.listpos = len(itemlist)
+    return itemlist.append(itemobj)
 
 #the enemy class    I don't even know
 class Enemy():
@@ -271,20 +330,20 @@ class Enemy():
         x = self.enx
         y = self.eny
         if plx > x or ply > y:
-            while foremap[x + 1][y] != wall and x != plx:
+            while foremap[x + 1][y] != wall and foremap[x + 1][y] != statue and x != plx:
                 if x + 2 <= len(foremap) - 1:
                     x += 1
                 else:
                     return False
-            while foremap[x][y + 1] != wall and y != ply:
+            while foremap[x][y + 1] != wall  and foremap[x][y + 1] != statue and y != ply:
                 if y + 2 <= len(foremap) - 1:
                     y += 1
                 else:
                     return False
         if plx < x or ply < y:
-            while foremap[x - 1][y] != wall and x != plx:
+            while foremap[x - 1][y] != wall  and foremap[x - 1][y] != statue and x != plx:
                 x -= 1
-            while foremap[x][y - 1] != wall and y != ply:
+            while foremap[x][y - 1] != wall  and foremap[x][y - 1] != statue and y != ply:
                 y -= 1
         if (x, y) == (plx, ply):
             return True
@@ -292,22 +351,43 @@ class Enemy():
             return False
 
     def enatt(self, hp):
-        global psn
-        if self.loaded == True:
+        global psn, para, paracount
+        if self.loaded == True and nodam == False:
             rn = random.randint(0, 2)
+            rnstatus = random.randint(0, 100)
             updatelog('dam', self.name, self.att + rn)
             if self.name == "Rat":
-                if random.randint(0, 100) >= 10:
+                if rnstatus <= 10:
                     psn = True
+            if self.name == "Snake":
+                if rnstatus <= 10:
+                    psn = True
+                if rnstatus > 10 and rnstatus <= 20:
+                    para = True
+                    paracount = 3
             return hp - (self.att + rn)
+        elif self.loaded == True and nodam == True:
+            updatelog('nodam', self.name)
 
     def enmv(self, direct): #at least it works
         global foremap, plhp
         pos = foremap[self.enx][self.eny]
-        down = foremap[self.enx + 1][self.eny]
-        up = foremap[self.enx - 1][self.eny]
-        right = foremap[self.enx][self.eny + 1]
-        left = foremap[self.enx][self.eny - 1]
+        if self.enx + 1 < 10:
+            down = foremap[self.enx + 1][self.eny]
+        else:
+            down = foremap[self.enx][self.eny]
+        if self.enx - 1 >= 0:
+            up = foremap[self.enx - 1][self.eny]
+        else:
+            up = foremap[self.enx][self.eny]
+        if self.eny + 1 < 10:
+            right = foremap[self.enx][self.eny + 1]
+        else:
+            right = foremap[self.enx][self.eny]
+        if self.eny - 1 >= 0:
+            left = foremap[self.enx][self.eny - 1]
+        else:
+            left = foremap[self.enx][self.eny]
         rn = random.randint(0, 1)
         attacked = False
 
@@ -327,36 +407,36 @@ class Enemy():
             foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
 
             if self.los() == True:
-                if self.enx < plx and down != wall:
+                if self.enx < plx and down == ground or down == bag or down == treasure or down == upstair or down == downstair:
                     self.enx += 1
-                elif self.enx > plx and up != wall:
+                elif self.enx > plx and up == ground or up == bag or up == treasure or up == upstair or up == downstair:
                     self.enx -= 1
-                elif self.eny < ply and right != wall:
+                elif self.eny < ply and right == ground or right == bag or right == treasure or right == upstair or right == downstair:
                     self.eny += 1
-                elif self.eny > ply and left != wall:
+                elif self.eny > ply and left == ground or left == bag or left == treasure or left == upstair or left == downstair:
                     self.eny -= 1
 
             else:
                 if direct == 'DOWN':
-                    if down != wall:
+                    if down == ground or down == bag or down == treasure or down == upstair or down == downstair:
                         self.enx += 1
                     else:
                         foremap[self.enx][self.eny] = self.image
                         return leri
                 elif direct == 'UP':
-                    if up != wall:
+                    if up == ground or up == bag or up == treasure or up == upstair or up == downstair:
                         self.enx -= 1
                     else:
                         foremap[self.enx][self.eny] = self.image
                         return leri
                 elif direct == 'RIGHT':
-                    if right != wall:
+                    if right == ground or right == bag or right == treasure or right == upstair or right == downstair:
                         self.eny += 1
                     else:
                         foremap[self.enx][self.eny] = self.image
                         return updo
                 elif direct == 'LEFT':
-                    if left != wall:
+                    if left == ground or left == bag or left == treasure or left == upstair or left == downstair:
                         self.eny -= 1
                     else:
                         foremap[self.enx][self.eny] = self.image
@@ -407,9 +487,43 @@ Enemy("Rat", 3, 0, 3, 1, rat),
 Enemy("Rat", 3, 0, 3, 1, rat),
 Enemy("Rat", 3, 0, 3, 1, rat),
 Enemy("Rat", 3, 0, 3, 1, rat),
-Enemy("Rat", 3, 0, 3, 1, rat)
+Enemy("Rat", 3, 0, 3, 1, rat),
+Enemy("Snake", 5, 1, 5, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, snake),
+Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, guinea)
 #---NONSTERS END HERE---#
 ]
+
+def getrandmon():
+    rn = random.randint(1, 100)
+    if floor < 3:
+        if rn <= 50:
+            return 0
+        if rn > 50:
+            return 5
+    if floor >= 3 and floor < 5:
+        if rn <= 25:
+            return 5
+        if rn > 25 and rn <= 50:
+            return 15
+        if rn > 50:
+            return 0
+    if floor >= 5:
+        if rn <= 30:
+            return 0
+        if rn > 30 and rn <= 60:
+            return 15
+        if rn > 60 and rn <= 90:
+            return 10
+        if rn > 90:
+            return 5
 
 def getmon(x, y):
     temp = False
@@ -437,17 +551,19 @@ def getmon(x, y):
 
     #gets a random new monster
     temp = 0
+    mon = getrandmon()
     while True:
-        rn = random.randint(0, len(enemies) - 1)
-        if enemies[rn].dead == False:
-            enemies[rn].enx = x
-            enemies[rn].eny = y
-            enemies[rn].spawnx, enemies[rn].spawny = x, y
-            enemies[rn].loaded = True
-            enemies[rn].rmfl = (room, floor)
-            enemies[rn].used.append(enemies[rn].rmfl)
-            updatelog('view', enemies[rn].name)
-            return enemies[rn].image
+        if enemies[mon].dead == False:
+            enemies[mon].enx = x
+            enemies[mon].eny = y
+            enemies[mon].spawnx, enemies[mon].spawny = x, y
+            enemies[mon].loaded = True
+            enemies[mon].rmfl = (room, floor)
+            enemies[mon].used.append(enemies[mon].rmfl)
+            updatelog('view', enemies[mon].name)
+            return enemies[mon].image
+        else:
+            mon += 1
         for i in range(len(enemies)):
             if enemies[i].dead == True:
                 temp += 1
@@ -455,55 +571,176 @@ def getmon(x, y):
                 return ground
 
 def getitem(x, y, kind, bagkind = 0):
-    temp = False
+
+    swordlow = Item("Iron Sword", 'WEAP', 2, treasure, 6)
+    swordmed = Item("Steel Sword", 'WEAP', 4, treasure, 8)
+    swordhigh = Item("Platinum Sword", 'WEAP', 6, treasure, 10)
+    daggerlow = Item("Iron Dagger", 'WEAP', 4, treasure, 4)
+    daggermed = Item("Steel Dagger", 'WEAP', 6, treasure, 6)
+    dagerhigh = Item("Platinum Dagger", 'WEAP', 8, treasure, 8)
+    axelow = Item("Iron Axe", 'WEAP', 0, treasure, 8)
+    axemed = Item("Steel Axe", 'WEAP', 2, treasure, 10)
+    axehigh = Item("Platinum Axe", 'WEAP', 4, treasure, 12)
+
+    swordsp = Item("Knight's Sword", 'WEAP', 8, treasure, 10)
+    daggersp = Item("Goblin's Dagger", 'WEAP', 10, treasure, 8)
+    axesp = Item("Axe of Guinea", 'WEAP', 4, treasure, 14)
+
+    armorlow = Item("Iron Armor", 'ARM', 3, treasure)
+    armormed = Item("Steel Armor", 'ARM', 6, treasure)
+    armorhigh = Item("Platinum Armor", 'ARM', 9, treasure)
+
+    weakpot = Item("Weak Potion", 'HEAL', 5, bag)
+    pot = Item("Potion", 'HEAL', 10, bag)
+    strpot = Item("Strong Potion", 'HEAL', 30, bag)
+    ant = Item("Antidote", 'PSN', 0, bag)
+    paraheal = Item("Paralysis Heal", 'PARA', 0, bag)
+    speed = Item("Speed Potion", 'SPD', 0, bag)
+    invpot = Item("Invincibility Potion", 'INV', 0, bag)
 
     if bagkind != 0: #for drops
-        for i in range(len(items)):
-            if items[i].name == bagkind and items[i].ininv == False:
-                items[i].pos = (x, y)
-                items[i].rmfl = (room, floor)
-                return items[i].image
+        if bagkind == "Potion":
+            tempitem = weakpot
+        if bagkind == "Antidote":
+            tempitem = ant
+        tempitem.pos = (x, y)
+        tempitem.rmfl = (room, floor)
+        additem(items, tempitem)
+        return tempitem.image
 
-    for i in range(len(items)):
-        if items[i].rmfl == (room, floor):
+    for i in range(len(items)): #for items that were already there
+        if items[i].rmfl == (room, floor) and items[i].pos == (x, y):
             if kind == 'T' and items[i].image == treasure and items[i].ininv == False:
                 items[i].pos = (x, y)
                 return items[i].image
-            for j in range(len(items[i].used)):
-                if items[i].used[j] == (room, floor):   #makes it so an item can never respawn in the same room
-                    temp = True
-            if kind == 'B' and items[i].image == bag and items[i].ininv == False and temp == False:
+            if kind == 'B' and items[i].image == bag and items[i].ininv == False:
                 items[i].pos = (x, y)
                 return items[i].image
-            if items[i].ininv == True or temp == True:
+            if items[i].ininv == True:
                 return ground
 
-    while True:
-        rn = random.randint(0, len(items) - 1)
-        if items[rn].ininv == False and items[rn].rmfl == 0 and items[rn].image == bag:
-            items[rn].rmfl = (room, floor)
-            items[rn].pos = (x, y)
-            return items[rn].image
+    if kind == 'T':
+        rn = random.randint(0, 100)
+        if floor < 5:
+            if rn <= 23:
+                tempitem = swordlow
+            if rn > 23 and rn <= 46:
+                tempitem = daggerlow
+            if rn > 46 and rn <= 69:
+                tempitem = axelow
+            if rn > 69 and rn <= 92:
+                tempitem = armorlow
+            if rn > 92:
+                rn = random.randint(0, 100)
+                if rn <= 25:
+                    tempitem = swordmed
+                if rn > 25 and rn <= 50:
+                    tempitem = daggermed
+                if rn > 50 and rn <= 75:
+                    tempitem = axemed
+                if rn > 75:
+                    tempitem = armormed
+        if floor >= 5 and floor < 10:
+            if rn <= 23:
+                tempitem = swordmed
+            if rn > 23 and rn <= 46:
+                tempitem = daggermed
+            if rn > 46 and rn <= 69:
+                tempitem = axemed
+            if rn > 69 and rn <= 92:
+                tempitem = armormed
+            if rn > 92:
+                rn = random.randint(0, 100)
+                if rn <= 25:
+                    tempitem = swordhigh
+                if rn > 25 and rn <= 50:
+                    tempitem = daggerhigh
+                if rn > 50 and rn <= 75:
+                    tempitem = axehigh
+                if rn > 75:
+                    tempitem = armorhigh
+        if floor >= 10:
+            if rn <= 60:
+                rn = random.randint(0, 100)
+                if rn <= 25:
+                    tempitem = swordmed
+                if rn > 25 and rn <= 50:
+                    tempitem = daggermed
+                if rn > 50 and rn <= 75:
+                    tempitem = axemed
+                if rn > 75:
+                    tempitem = armormed
+            if rn > 60:
+                rn = random.randint(0, 100)
+                if rn <= 25:
+                    tempitem = swordhigh
+                if rn > 25 and rn <= 50:
+                    tempitem = daggerhigh
+                if rn > 50 and rn <= 75:
+                    tempitem = axehigh
+                if rn > 75:
+                    tempitem = armorhigh
+
+    if kind == 'B':
+        rn = random.randint(0, 100) #get new item
+        if floor < 5:
+            if rn <= 70:
+                tempitem = weakpot
+            if rn > 70:
+                tempitem = ant
+        if floor >= 5 and floor < 10:
+            if rn <= 30:
+                tempitem = pot
+            if rn > 30 and rn <= 40:
+                tempitem = speed
+            if rn > 40 and rn <= 60:
+                tempitem = weakpot
+            if rn > 60 and rn <= 80:
+                tempitem = ant
+            if rn > 80:
+                tempitem = paraheal
+        if floor >= 10:
+            if rn <= 5:
+                tempitem = invpot
+            if rn > 5 and rn <= 15:
+                tempitem = speed
+            if rn > 15 and rn <= 30:
+                tempitem = ant
+            if rn > 30 and rn <= 50:
+                tempitem = paraheal
+            if rn > 50 and rn <= 70:
+                tempitem = strpot
+            if rn > 70:
+                tempitem = pot
+    tempitem.pos = (x, y)
+    tempitem.rmfl = (room, floor)
+    additem(items, tempitem)
+    return tempitem.image
 
 def pickup():
-    global keypos, haskey, invmax
+    global keypos, haskey, invmax, itemrmflxy
     if (plx, ply) == keypos:
         haskey = True
         keyused.append((room, floor))
         foremap[plx][ply] = player 
         backmap[plx][ply] = ground
+        updatelog('pick', "key")
     for i in range(len(items)):
         if items[i].pos == (plx, ply) and items[i].rmfl == (room, floor):
             items[i].ininv = True
+            rmflxy = (items[i].rmfl, items[i].pos)
+            itemrmflxy.append(rmflxy)
             items[i].pos = (0, 0)
             backmap[plx][ply] = ground
             invmax += 1
+            updatelog('pick', items[i].name)
 
 def openinv():
     cursor = 0
     while True:
         screen.fill(pygame.Color("black"), (0, 0, 500, 500))
         temp = 0
+        done = False
         for i in range(len(items)):
             if items[i].ininv == True:
                 screen.blit(log.render(items[i].name + "    " + str(items[i].value), True, pygame.Color("white")), (50, (temp * 50) + 50))
@@ -524,9 +761,19 @@ def openinv():
             if select.key == pygame.K_DOWN and cursor + 1 <= invmax:
                 cursor += 1
             if select.key == pygame.K_RETURN:
-                for i in range(len(items)):
+                i = 0
+                while not done:
                     if items[i].curs == cursor:
+                        if cursor - 1 != -1:
+                            cursor -= 1
                         items[i].use()
+                        j = i
+                        for j in range(i, len(items)):
+                            items[j].listpos -= 1
+                        done = True
+                    i += 1
+                    if i >= len(items):
+                        done = True
             if select.key == pygame.K_i:
                 return
         screen.blit(log.render("________", True, pygame.Color("white")), (50, (cursor * 50) + 60))
@@ -626,7 +873,14 @@ def loadmap(direct):    #TO DO add the R = rat, G = goblin thing
                 foremap[i][j] = getitem(i, j, 'T')
                 backmap[i][j] = foremap[i][j]
             if backmap[i][j] == 'B':
-                foremap[i][j] = getitem(i, j, 'B')
+                tracker = 0
+                for k in range(len(itemrmflxy)):
+                    if ((room, floor), (i, j)) == itemrmflxy[k]:
+                        tracker += 1
+                if tracker == 0:
+                    foremap[i][j] = getitem(i, j, 'B')
+                else:
+                    foremap[i][j] = ground
                 backmap[i][j] = foremap[i][j]
             if backmap[i][j] == '<':
                 foremap[i][j] = upstair
@@ -640,7 +894,12 @@ def loadmap(direct):    #TO DO add the R = rat, G = goblin thing
 #the move function, you dingus
 #it's messy, I know
 def move(x):
-    global foremap, plx, ply, haskey, dooropen
+    global foremap, plx, ply, haskey, dooropen, paracount
+
+    if para == True:
+        paracount += 1
+        return
+
     load = False #needed because I can't put elifs here
     attacked = False
     foremap[plx][ply] = backmap[plx][ply]
@@ -733,23 +992,30 @@ while True:
             openinv()
         if event.key == pygame.K_COMMA:
             pickup()
-        if event.key == pygame.K_a:
-            xp += 1
-            floor = 3
 
-    for i in range(len(enemies)):
-        enemies[i].die()
-        if enemies[i].dead == False:
-            tempgo = enemies[i].keepgo
-            enemies[i].keepgo = enemies[i].enmv(tempgo)
-        else:
-            if enemies[i].drop != None and enemies[i].drop != 0:
-                foremap[enemies[i].enx][enemies[i].eny] = enemies[i].drop
-                backmap[enemies[i].enx][enemies[i].eny] = enemies[i].drop
-            screen.blit(foremap[enemies[i].enx][enemies[i].eny], (enemies[i].enx * 50, enemies[i].eny * 50))
-            pygame.display.update()
-            enemies[i].enx, enemies[i].eny = 0, 0
-            enemies[i].recycle()
+    if speedcount == 3:
+        speed == False
+        speedcount = 0
+        speedturn = 0
+
+    if speed == False or speedturn == 1:
+        for i in range(len(enemies)):
+            enemies[i].die()
+            if enemies[i].dead == False:
+                tempgo = enemies[i].keepgo
+                enemies[i].keepgo = enemies[i].enmv(tempgo)
+            else:
+                if enemies[i].drop != None and enemies[i].drop != 0:
+                    foremap[enemies[i].enx][enemies[i].eny] = enemies[i].drop
+                    backmap[enemies[i].enx][enemies[i].eny] = enemies[i].drop
+                screen.blit(foremap[enemies[i].enx][enemies[i].eny], (enemies[i].enx * 50, enemies[i].eny * 50))
+                pygame.display.update()
+                enemies[i].enx, enemies[i].eny = 0, 0
+                enemies[i].recycle()
+        speedcount += 1
+        speedturn = 0
+    elif speed == True:
+        speedturn += 1
 
     foremap[plx][ply] = player #makes it so you don't go invisible on a tile a monster died on
     foremap[0][0] = wall
@@ -769,6 +1035,13 @@ while True:
         if psnstep >= 100:
             psn = False
         psnstep += 1
+    if para == True:
+        if paracount == paramax:
+            para = False
+    if nodam == True:
+        nodamcount += 1
+        if nodamcount == 5:
+            nodam = False
 
     if plhp <= 0:
         updatelog('dead')
