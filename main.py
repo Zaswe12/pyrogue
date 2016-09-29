@@ -1,6 +1,3 @@
-#=============================================BUGS========================
-#THAT STUPID ENEMY DOESN'T MOVE AND IS NOT REALLY THERE REEEEEEEEE
-#=========================================================================
 import pygame
 import sys
 import random
@@ -342,6 +339,7 @@ class Enemy():
     drop = 0
     loaded = False
     dead = False
+    boss = False
     keepgo = 'UP'
     rmfl = (0, 0)
     currentloc = ((0, 0), (0, 0)) # room, floor, x, y
@@ -468,6 +466,31 @@ class Enemy():
             foremap[self.enx][self.eny] = self.image
         return direct
 
+    def forskellyonly(self):
+        global foremap, plhp
+        if self.enx - 1 == plx or self.enx + 1 plx or self.eny - 1 == plx or self.eny + 1 == ply:
+            rn = random.randint(0, 10):
+                if rn <= 3:
+                    if self.enx - 1 == plx and foremap[self.enx + 1][self.eny] == ground:
+                        self.enx += 1
+                        keepgo = 'DOWN'
+                    if self.enx + 1 == plx and foremap[self.enx - 1][self.eny] == ground:
+                        self.enx -= 1
+                        keepgo = 'UP'
+                    if self.eny - 1 == ply and foremap[self.enx][self.eny + 1] == ground:
+                        self.eny += 1
+                        keepgo = 'RIGHT'
+                    if self.eny + 1 == ply and foremap[self.enx][self.eny - 1] == ground:
+                        self.eny -= 1
+                        keepgo = 'LEFT'
+                else:
+                    plhp = self.enatt(plhp)
+        else:
+            if keepgo == True:
+                RUNAWAY
+            if far enough away:
+                forskellyonlymagic
+
     def dropitem(self):
         if random.randint(0, 100) <= 12:
             if floor < 5:
@@ -494,6 +517,14 @@ class Enemy():
                 foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
             self.diedin.append((room, floor, self.spawnx, self.spawny))
             self.rmfl = (0, 0)
+            if self.boss == True:
+                dooropen.append((room, floor))
+                self.hp = 1
+                if floor == 5:
+                    foremap[4][0] = ground
+                    foremap[5][0] = ground
+                    foremap[4][9] = ground
+                    foremap[5][9] = ground
 
     def recycle(self, stair = False):
         self.dead = False
@@ -505,6 +536,7 @@ class Enemy():
             self.spawnx, self.spawny = 0, 0
             self.currentloc = ((0, 0), (0, 0))
             
+#Name, HP, Attack, Armor, XP, image
 enemies = [
 #---MONSTERS GO HERE---#
 Enemy("Goblin", 5, 0, 5, 2, goblin),
@@ -512,6 +544,16 @@ Enemy("Goblin", 5, 0, 5, 2, goblin),
 Enemy("Goblin", 5, 0, 5, 2, goblin),
 Enemy("Goblin", 5, 0, 5, 2, goblin),
 Enemy("Goblin", 5, 0, 5, 2, goblin),
+Enemy("Goblin", 5, 0, 5, 2, goblin),
+Enemy("Goblin", 5, 0, 5, 2, goblin),
+Enemy("Goblin", 5, 0, 5, 2, goblin),
+Enemy("Goblin", 5, 0, 5, 2, goblin),
+Enemy("Goblin", 5, 0, 5, 2, goblin),
+Enemy("Rat", 3, 0, 3, 1, rat),
+Enemy("Rat", 3, 0, 3, 1, rat),
+Enemy("Rat", 3, 0, 3, 1, rat),
+Enemy("Rat", 3, 0, 3, 1, rat),
+Enemy("Rat", 3, 0, 3, 1, rat),
 Enemy("Rat", 3, 0, 3, 1, rat),
 Enemy("Rat", 3, 0, 3, 1, rat),
 Enemy("Rat", 3, 0, 3, 1, rat),
@@ -522,6 +564,16 @@ Enemy("Snake", 5, 1, 5, 3, snake),
 Enemy("Snake", 5, 1, 5, 3, snake),
 Enemy("Snake", 5, 1, 5, 3, snake),
 Enemy("Snake", 5, 1, 5, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, snake),
+Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
 Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
 Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
 Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
@@ -530,29 +582,32 @@ Enemy("Guinea Pig", 3, 3, 7, 3, guinea)
 #---NONSTERS END HERE---#
 ]
 
+bosses = [
+Enemy("Troll", 15, 6, 6, 15, troll)
+]
 def getrandmon():
     rn = random.randint(1, 100)
     if floor < 3:
         if rn <= 50:
             return 0
         if rn > 50:
-            return 5
+            return 10
     if floor >= 3 and floor < 5:
         if rn <= 25:
-            return 5
+            return 10
         if rn > 25 and rn <= 50:
-            return 15
+            return 30
         if rn > 50:
             return 0
     if floor >= 5:
         if rn <= 30:
             return 0
         if rn > 30 and rn <= 60:
-            return 15
+            return 30
         if rn > 60 and rn <= 90:
-            return 10
+            return 20
         if rn > 90:
-            return 5
+            return 10
 
 def getmon(x, y):
     
@@ -575,7 +630,7 @@ def getmon(x, y):
     #gets a random new monster
     temp = 0
     mon = getrandmon()
-    monmax = mon + 4
+    monmax = mon + 9
     while True:
         if enemies[mon].dead == False and enemies[mon].currentloc == ((0, 0), (0, 0)):
             enemies[mon].enx = x
@@ -593,6 +648,25 @@ def getmon(x, y):
                 temp += 1
             if temp >= len(enemies) or mon > monmax:
                 return ground
+
+def placeboss(fl, x, y):
+    if fl == 5:
+        num = 0
+    if fl == 10:
+        num = 1
+    if fl == 15:
+        num = 2
+    if bosses[num].hp > 1:
+        bosses[num].enx = x
+        bosses[num].eny = y
+        bosses[num].loaded = True
+        bosses[num].rmfl = (room, floor)
+        bosses[num].currentloc = ((room, floor), (x, y))
+        bosses[num].boss = True
+        updatelog('view', bosses[num].name)
+        return bosses[num].image
+    else:
+        return ground
 
 def getitem(x, y, kind, bagkind = 0):
 
@@ -858,12 +932,19 @@ def loadmap(direct):
         upstrpos = (0, 0)
         floor -= 1
         for i in range(len(enemies)):
-            enemies[i].recycle
+            enemies[i].recycle(True)
     if direct == 'STAIR_DOWN':
         downstrpos = (0, 0)
         floor += 1
         for i in range(len(enemies)):
-            enemies[i].recycle
+            enemies[i].recycle(True)
+
+    if (floor, room) == (5, 2) and direct == 'RIGHT':
+        ply = 1
+    """if (floor, room) == (10, x):
+        pl = num
+    if (floor, room) == (15, x):
+        pl = num"""
 
     newmap = "rooms/fl" + str(floor) + "r" + str(room) + ".txt"
     newmap = open(newmap, 'r')
@@ -893,6 +974,9 @@ def loadmap(direct):
                 backmap[i][j] = statue
             if backmap[i][j] == 'E':
                 foremap[i][j] = getmon(i, j)
+                backmap[i][j] = ground
+            if backmap[i][j] == 'Q':
+                foremap[i][j] = placeboss(floor, i, j)
                 backmap[i][j] = ground
             if backmap[i][j] == 'K':
                 for k in range(len(keyused)):
@@ -934,8 +1018,7 @@ def loadmap(direct):
                 backmap[i][j] = downstair
                 downstrpos = (i, j)
 
-#the move function, you dingus
-#it's messy, I know
+#it's terrible, I know
 def move(x):
     global foremap, plx, ply, haskey, dooropen, paracount
 
@@ -955,6 +1038,10 @@ def move(x):
             if plx - 1 == enemies[i].enx and ply == enemies[i].eny and foremap[plx - 1][ply] == enemies[i].image and load == False:
                 enemies[i].hp = attack(enemies[i], weapon)
                 attacked = True
+        for i in range(len(bosses)):
+            if plx - 1 == bosses[i].enx and ply == bosses[i].eny and foremap[plx - 1][ply] == bosses[i].image and load == False:
+                bosses[i].hp = attack(bosses[i], weapon)
+                attacked = True
 
         if foremap[plx - 1][ply] == door and haskey == True:
             foremap[plx - 1][ply] = backmap[plx - 1][ply]
@@ -973,8 +1060,12 @@ def move(x):
            if plx + 1 == enemies[i].enx and ply == enemies[i].eny and foremap[plx + 1][ply] == enemies[i].image and load == False:
                 enemies[i].hp = attack(enemies[i], weapon)
                 attacked = True
+        for i in range(len(bosses)):
+           if plx + 1 == bosses[i].enx and ply == bosses[i].eny and foremap[plx + 1][ply] == bosses[i].image and load == False:
+                bosses[i].hp = attack(bosses[i], weapon)
+                attacked = True
 
-        if foremap[plx + 1][ply] != wall and foremap[plx + 1][ply] != statue and load == False and attacked == False:
+        if foremap[plx + 1][ply] != wall and foremap[plx + 1][ply] != statue and foremap[plx + 1][ply] != door and load == False and attacked == False:
             plx += 1
 
     if x == 'LEFT':
@@ -986,8 +1077,12 @@ def move(x):
            if plx == enemies[i].enx and ply - 1 == enemies[i].eny and foremap[plx][ply - 1] == enemies[i].image and load == False:
                 enemies[i].hp = attack(enemies[i], weapon)
                 attacked = True
+        for i in range(len(bosses)):
+           if plx == bosses[i].enx and ply - 1 == bosses[i].eny and foremap[plx][ply - 1] == bosses[i].image and load == False:
+                bosses[i].hp = attack(bosses[i], weapon)
+                attacked = True
 
-        if foremap[plx][ply - 1] != wall and foremap[plx][ply - 1] != statue and load == False and attacked == False:
+        if foremap[plx][ply - 1] != wall and foremap[plx][ply - 1] != statue and foremap[plx][ply - 1] != door and load == False and attacked == False:
             ply -= 1
 
     if x == 'RIGHT':
@@ -999,8 +1094,12 @@ def move(x):
           if plx == enemies[i].enx and ply + 1 == enemies[i].eny and foremap[plx][ply + 1] == enemies[i].image and load == False:
                 enemies[i].hp = attack(enemies[i], weapon)
                 attacked = True
+        for i in range(len(bosses)):
+          if plx == bosses[i].enx and ply + 1 == bosses[i].eny and foremap[plx][ply + 1] == bosses[i].image and load == False:
+                bosses[i].hp = attack(bosses[i], weapon)
+                attacked = True
 
-        if foremap[plx][ply + 1] != wall and foremap[plx][ply + 1] != statue and load == False and attacked == False:
+        if foremap[plx][ply + 1] != wall and foremap[plx][ply + 1] != statue and foremap[plx][ply + 1] != door and load == False and attacked == False:
             ply += 1
 
     if x == 'STAIR_UP':
@@ -1023,6 +1122,7 @@ while True:
             move('UP')
         if event.key == pygame.K_DOWN:
             move('DOWN')
+            floor = 5
         if event.key == pygame.K_LEFT:
             move('LEFT')
         if event.key == pygame.K_RIGHT:
@@ -1055,6 +1155,18 @@ while True:
                 pygame.display.update()
                 enemies[i].enx, enemies[i].eny = 0, 0
                 enemies[i].recycle()
+        for i in range(1):
+            bosses[i].die()
+            if bosses[i].dead == False:
+                tempgo = bosses[i].keepgo
+                bosses[i].keepgo = bosses[i].enmv(tempgo)
+            else:
+                if bosses[i].drop != None and bosses[i].drop != 0:
+                    foremap[bosses[i].enx][bosses[i].eny] = bosses[i].drop
+                    backmap[bosses[i].enx][bosses[i].eny] = bosses[i].drop
+                screen.blit(foremap[bosses[i].enx][bosses[i].eny], (bosses[i].enx * 50, bosses[i].eny * 50))
+                pygame.display.update()
+                bosses[i].enx, bosses[i].eny = 0, 0
         speedcount += 1
         speedturn = 0
     elif speed == True:
