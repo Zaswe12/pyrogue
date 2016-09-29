@@ -1,7 +1,6 @@
-#=============================================BUGS======================================================
-#ALSO THAT STUPID ENEMY DOESN'T MOVE AND IS NOT REALLY THERE REEEEEEEEE
-#sometimes when you try to use an item it doesn't use it and it stays in your inventory
-#=======================================================================================================
+#=============================================BUGS========================
+#THAT STUPID ENEMY DOESN'T MOVE AND IS NOT REALLY THERE REEEEEEEEE
+#=========================================================================
 import pygame
 import sys
 import random
@@ -88,6 +87,7 @@ speedturn = 0
 speedcount = 0
 nodam = False
 nodamcount = 0
+armoron = False
 nextlvl = [0 for i in range(50)]
 nextlvl[1] = 10
 for i in range(2, 50):
@@ -247,12 +247,28 @@ class Item():
     listpos = None
     equip = False
     ininv = False
+    dropped = False
     def __init__(self, name, kind, value, image, damage = 0): #damage is for weapons
         self.name = name
         self.kind = kind
         self.value = value
         self.image = image
         self.damage = damage
+
+    def drop(self):
+        global invmax, foremap
+        if self.ininv == True:
+            self.ininv = False
+            self.dropped = True
+            invmax -= 1
+            self.pos = (plx, ply)
+            self.rmfl = (room, floor)
+            if self.image == bag:
+                foremap[plx][ply] = bag
+                backmap[plx][ply] = bag
+            if self.image == treasure:
+                foremap[plx][ply] = treasure
+                backmap[plx][ply] = treasure
 
     def useitem(self):
         global invmax, items
@@ -261,14 +277,23 @@ class Item():
         items.pop(self.listpos)
 
     def use(self):
-        global weapon, plhp, maxhp
+        global weapon, plhp, maxhp, armor, armoron
         if self.kind == 'WEAP':
-            if self.equip == False:
+            if self.equip == False and weapon == "fist":
                 self.equip = True
                 weapon = self
-            else:
+            elif self.equip == True:
                 self.equip = False
                 weapon = "fist"
+        if self.kind == 'ARM':
+            if self.equip == False and armoron == False:
+                self.equip = True
+                armoron = True
+                armor += self.value
+            elif self.equip == True:
+                self.equip = False
+                armoron = False
+                armor -= self.value
         if self.kind == 'HEAL' and self.ininv == True:
             if self.value + plhp > maxhp:
                 plhp = maxhp
@@ -277,26 +302,31 @@ class Item():
             self.useitem()
             screen.fill(pygame.Color("black"), (80, 500, 23, 15))
             screen.blit(log.render(str(plhp), True, pygame.Color("white")), (85, 500))
+            return True
         if self.kind == 'PSN' and self.ininv == True:
             global psn
             if psn == True:
                 psn = False
                 self.useitem()
+                return True
         if self.kind == 'PARA' and self.ininv == True:
             global para
             if para == True:
                 para = False
                 self.useitem()
+                return True
         if self.kind == 'SPD' and self.ininv == True:
             global speed
             if speed == False:
                 speed = True
                 self.useitem()
+                return True
         if self.kind == 'INV' and self.ininv == True:
             global nodam
             if nodam == False:
                 nodam = True
                 self.useitem()
+                return True
             
 
 items = [Item("Potion", 'HEAL', 5, bag)]
@@ -305,7 +335,7 @@ def additem(itemlist, itemobj):
     itemobj.listpos = len(itemlist)
     return itemlist.append(itemobj)
 
-#the enemy class    I don't even know
+#the enemy class    This is magic code now. I have forgotten what most of this is and how it works. I just know it works badly.
 class Enemy():
     enx, eny = 0, 0
     spawnx, spawny = 0, 0
@@ -314,8 +344,8 @@ class Enemy():
     dead = False
     keepgo = 'UP'
     rmfl = (0, 0)
-    used = [(0, 0)]
-    diedin = [(0, 0, 0, 0)] # room, floor, x, y
+    currentloc = ((0, 0), (0, 0)) # room, floor, x, y
+    diedin = [(0, 0, 0, 0)] # same as ^ but worse and I don't want to change it
     def __init__(self, name, hp, att, armor, xp, image):
         self.name = name
         self.hp = hp
@@ -344,7 +374,7 @@ class Enemy():
             return False
 
     def enatt(self, hp):
-        global psn, para, paracount
+        global psn, para, paramax
         if self.loaded == True and nodam == False:
             rn = random.randint(0, 2)
             rnstatus = random.randint(0, 100)
@@ -355,9 +385,9 @@ class Enemy():
             if self.name == "Snake":
                 if rnstatus <= 10:
                     psn = True
-                #if rnstatus > 10 and rnstatus <= 20:
-                #    para = True
-                #    paracount = 3
+                if rnstatus > 10 and rnstatus <= 20:
+                    para = True
+                    paramax = 3
             return hp - (self.att + rn)
         elif self.loaded == True and nodam == True:
             updatelog('nodam', self.name)
@@ -465,9 +495,15 @@ class Enemy():
             self.diedin.append((room, floor, self.spawnx, self.spawny))
             self.rmfl = (0, 0)
 
-    def recycle(self):
+    def recycle(self, stair = False):
         self.dead = False
         self.hp = self.temphp
+        if stair == True:
+            self.loaded = False
+            self.rmfl = (0, 0)
+            self.enx, self.eny = 0, 0
+            self.spawnx, self.spawny = 0, 0
+            self.currentloc = ((0, 0), (0, 0))
             
 enemies = [
 #---MONSTERS GO HERE---#
@@ -519,9 +555,7 @@ def getrandmon():
             return 5
 
 def getmon(x, y):
-    temp = False
     
-    #TO DO only that spot they won't spawn
     for i in range(len(enemies)):
         for j in range(len(enemies[i].diedin)):
             if enemies[i].diedin[j] == (room, floor, x, y):
@@ -529,30 +563,27 @@ def getmon(x, y):
 
     #gets the monster that was already there
     for i in range(len(enemies)):
-        if enemies[i].rmfl == (room, floor) and enemies[i].loaded == False:
-            for j in range(len(enemies[i].used)):
-                if enemies[i].used[j] == (room, floor):
-                    temp1 = True
-            if temp == False:
+        if enemies[i].currentloc == ((room, floor), (x, y)) and enemies[i].loaded == False:
+            if enemies[i].dead == False:
                 enemies[i].loaded = True
                 enemies[i].enx = x
                 enemies[i].eny = y
                 enemies[i].spawnx, enemies[i].spawny = x, y
-                if enemies[i].dead == False:
-                    updatelog('view', enemies[i].name)
+                updatelog('view', enemies[i].name)
                 return enemies[i].image
 
     #gets a random new monster
     temp = 0
     mon = getrandmon()
+    monmax = mon + 4
     while True:
-        if enemies[mon].dead == False:
+        if enemies[mon].dead == False and enemies[mon].currentloc == ((0, 0), (0, 0)):
             enemies[mon].enx = x
             enemies[mon].eny = y
             enemies[mon].spawnx, enemies[mon].spawny = x, y
             enemies[mon].loaded = True
             enemies[mon].rmfl = (room, floor)
-            enemies[mon].used.append(enemies[mon].rmfl)
+            enemies[mon].currentloc = ((room, floor), (x, y))
             updatelog('view', enemies[mon].name)
             return enemies[mon].image
         else:
@@ -560,7 +591,7 @@ def getmon(x, y):
         for i in range(len(enemies)):
             if enemies[i].dead == True:
                 temp += 1
-            if temp >= len(enemies):
+            if temp >= len(enemies) or mon > monmax:
                 return ground
 
 def getitem(x, y, kind, bagkind = 0):
@@ -721,8 +752,9 @@ def pickup():
     for i in range(len(items)):
         if items[i].pos == (plx, ply) and items[i].rmfl == (room, floor):
             items[i].ininv = True
-            rmflxy = (items[i].rmfl, items[i].pos)
-            itemrmflxy.append(rmflxy)
+            if items[i].dropped == False:
+                rmflxy = (items[i].rmfl, items[i].pos)
+                itemrmflxy.append(rmflxy)
             items[i].pos = (0, 0)
             backmap[plx][ply] = ground
             invmax += 1
@@ -741,6 +773,8 @@ def openinv():
                 temp += 1
             if items[i].equip == True:
                 screen.blit(log.render("*", True, pygame.Color("white")), (40, (items[i].curs * 50) + 50))
+            if items[i].equip == False:
+                screen.fill(pygame.Color("black"), (38, (items[i].curs * 50) + 48, 15, 10))
         screen.blit(log.render("________", True, pygame.Color("white")), (50, (cursor * 50) + 60))
         pygame.display.update()
 
@@ -755,18 +789,24 @@ def openinv():
                 cursor += 1
             if select.key == pygame.K_RETURN:
                 i = 0
+                trueornot = False
                 while not done:
                     if items[i].curs == cursor:
-                        if cursor - 1 != -1:
+                        if cursor - 1 != -1 and items[i].kind != "WEAP" and items[i].kind != "ARM":
                             cursor -= 1
-                        items[i].use()
+                        trueornot = items[i].use()
                         j = i
                         for j in range(i, len(items)):
-                            items[j].listpos -= 1
+                            if trueornot == True:
+                                items[j].listpos -= 1
                         done = True
                     i += 1
                     if i >= len(items):
                         done = True
+            if select.key == pygame.K_d:
+                for i in range(len(items)):
+                    if items[i].curs == cursor:
+                        items[i].drop()
             if select.key == pygame.K_i:
                 return
         screen.blit(log.render("________", True, pygame.Color("white")), (50, (cursor * 50) + 60))
@@ -792,7 +832,7 @@ def attack(enemy, weapon):
         updatelog('miss')
 
 #load in another map file and display it on the screen
-def loadmap(direct):    #TO DO add the R = rat, G = goblin thing
+def loadmap(direct):
     global foremap, backmap, plx, ply, floor, room, upstrpos, downstrpos, keypos
     upstrpos = (0, 0)
     downstrpos = (0, 0)
@@ -817,9 +857,13 @@ def loadmap(direct):    #TO DO add the R = rat, G = goblin thing
     if direct == 'STAIR_UP':
         upstrpos = (0, 0)
         floor -= 1
+        for i in range(len(enemies)):
+            enemies[i].recycle
     if direct == 'STAIR_DOWN':
         downstrpos = (0, 0)
         floor += 1
+        for i in range(len(enemies)):
+            enemies[i].recycle
 
     newmap = "rooms/fl" + str(floor) + "r" + str(room) + ".txt"
     newmap = open(newmap, 'r')
@@ -832,6 +876,12 @@ def loadmap(direct):    #TO DO add the R = rat, G = goblin thing
 
     for i in range(10):
         for j in range(10):
+
+            for k in range(len(items)): #for items that were dropped
+                if (i, j) == items[k].pos and (room, floor) == items[k].rmfl:
+                    foremap[i][j] = bag
+                    backmap[i][j] = foremap[i][j]
+
             if backmap[i][j] == '#':
                 foremap[i][j] = wall
                 backmap[i][j] = wall
@@ -1023,18 +1073,33 @@ while True:
         screen.fill(pygame.Color("black"), (350, 500, 50, 50))
 
     if psn == True:
+        screen.blit(log.render("PSN", True, pygame.Color("purple")), (300, 500))
         if psnstep % 4 == 0:
             plhp -= 1
         if psnstep >= 100:
             psn = False
         psnstep += 1
     if para == True:
+        screen.blit(log.render("PARA", True, pygame.Color("red")), (350, 500))
+        paracount += 1
         if paracount == paramax:
             para = False
+            paracount = 0
     if nodam == True:
+        screen.blit(log.render("INV", True, pygame.Color("yellow")), (350, 520))
         nodamcount += 1
         if nodamcount == 5:
+            screen.fill(pygame.Color("black"), (349, 520, 40, 15))
             nodam = False
+            nodamcount = 0
+    if speed == True:
+        screen.blit(log.render("SPD", True, pygame.Color("cyan")), (300, 520))
+    if speed == False:
+        screen.fill(pygame.Color("black"), (299, 520, 40, 15))
+    if psn == False:
+        screen.fill(pygame.Color("black"), (299, 500, 40, 15))
+    if para == False:
+        screen.fill(pygame.Color("black"), (349, 500, 40, 15))
 
     if plhp <= 0:
         updatelog('dead')
