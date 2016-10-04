@@ -60,8 +60,9 @@ player = pygame.image.load('graphics/player.png').convert()
 goblin = pygame.image.load('graphics/goblin.png').convert()
 rat = pygame.image.load('graphics/rat.png').convert()
 snake = pygame.image.load('graphics/snake.png').convert()
-troll = pygame.image.load('graphics/troll.png').convert()
 guinea = pygame.image.load('graphics/guinea.png').convert()
+troll = pygame.image.load('graphics/troll.png').convert()
+skeleton = pygame.image.load('graphics/skeleton.png').convert()
 treasure = pygame.image.load('graphics/treasure.png').convert()
 bag = pygame.image.load('graphics/bag.png').convert()
 key = pygame.image.load('graphics/key.png').convert()
@@ -117,6 +118,8 @@ foremap = [[0 for i in range(10)] for j in range(10)]
 screen.blit(log.render("HP: " + str(plhp) + "/" + str(maxhp), True, pygame.Color("white")), (50, 500))
 screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (150, 500))
 
+skelgo = 'UP'
+
 #spilts the 1D array into 2D
 for i in range(10):
     for j in range(10):
@@ -171,6 +174,12 @@ def updatelog(kind, thing = 0, value = 0):
         text[0] = log.render("The " + thing + " hits you for " + value + " damage", True, pygame.Color("red"))
     if kind == 'nodam':
         text[0] = log.render("The " + thing + " hits you but you don't take any damage", True, pygame.Color("white"))
+    if kind == 'magi':
+        text[0] = log.render("The " + thing + "shoots a fireball at you", True, pygame.Color("red"))
+    if kind == 'magihit':
+        text[0] = log.render("It hits for " + value + " damage", True, pygame.Color("red"))
+    if kind == 'magimiss':
+        text[0] = log.render("It misses", True, pygame.Color("white"))
     if kind == 'pick':
         text[0] = log.render("You pick up the " + thing, True, pygame.Color("white"))
     if kind == 'heal':
@@ -466,30 +475,75 @@ class Enemy():
             foremap[self.enx][self.eny] = self.image
         return direct
 
-    def forskellyonly(self):
+    def forskellymagic(self, hp):
+        #animations?
+        rn = random.randint(1, 10)
+        updatelog('magi', self.name)
+        if rn <= 5:
+            rndam = random.randint(10, 20)
+            updatelog('magihit', None, rndam)
+            return hp - rndam
+        else:
+            updatelog('magimiss')
+            return hp
+
+    #what is a subclass?
+    def forskellyonly(self, keepgoskel):
         global foremap, plhp
-        if self.enx - 1 == plx or self.enx + 1 plx or self.eny - 1 == plx or self.eny + 1 == ply:
-            rn = random.randint(0, 10):
+        moved = False
+        direct = keepgoskel
+        enpos = (self.enx, self.eny)
+        rn = random.randint(0, 10)
+        if ((self.enx - 1 == plx or self.enx + 1 == plx) and self.eny == ply) or (self.enx == plx and (self.eny + 1 == ply or self.eny - 1 == ply)):
                 if rn <= 3:
                     if self.enx - 1 == plx and foremap[self.enx + 1][self.eny] == ground:
+                        foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                         self.enx += 1
-                        keepgo = 'DOWN'
+                        direct = 'UP'
                     if self.enx + 1 == plx and foremap[self.enx - 1][self.eny] == ground:
+                        foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                         self.enx -= 1
-                        keepgo = 'UP'
+                        direct = 'DOWN'
                     if self.eny - 1 == ply and foremap[self.enx][self.eny + 1] == ground:
+                        foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                         self.eny += 1
-                        keepgo = 'RIGHT'
+                        direct = 'LEFT'
                     if self.eny + 1 == ply and foremap[self.enx][self.eny - 1] == ground:
+                        foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                         self.eny -= 1
-                        keepgo = 'LEFT'
-                else:
+                        direct = 'RIGHT'
+                    foremap[self.enx][self.eny] = self.image
+                    moved = True
+                if rn > 3 or enpos == (self.enx, self.eny):
                     plhp = self.enatt(plhp)
+                    moved = False
+                return direct
         else:
-            if keepgo == True:
-                RUNAWAY
-            if far enough away:
-                forskellyonlymagic
+            #checks each direction to see if they are more than 2 spaces away from the player
+            if moved == False and self.enx - plx > 2 or self.enx - plx < -2 or self.eny - ply > 2 or self.eny - ply < -2:
+                if self.los() == True and random.randint(0, 10) <= 3:
+                    plhp = self.forskellymagic(plhp)
+                    moved = True
+            if moved == False:
+                foremap[self.enx][self.eny] = ground
+                if keepgoskel == 'UP':
+                    if foremap[self.enx - 1][self.eny] == ground:
+                        self.enx -= 1
+                        direct = 'UP'
+                if keepgoskel == 'DOWN':
+                    if foremap[self.enx + 1][self.eny] == ground:
+                        self.enx += 1
+                        direct = 'DOWN'
+                if keepgoskel == 'LEFT':
+                    if foremap[self.enx][self.eny - 1] == ground:
+                        self.eny -= 1
+                        direct = 'LEFT'
+                if keepgoskel == 'RIGHT':
+                    if foremap[self.enx][self.eny - 1] == ground:
+                        self.eny += 1
+                        direct = 'RIGHT'
+                foremap[self.enx][self.eny] = self.image
+                return direct
 
     def dropitem(self):
         if random.randint(0, 100) <= 12:
@@ -525,6 +579,11 @@ class Enemy():
                     foremap[5][0] = ground
                     foremap[4][9] = ground
                     foremap[5][9] = ground
+                if floor == 10:
+                    foremap[9][4] = ground
+                    foremap[9][5] = ground
+                    foremap[2][4] = downstair
+                    backmap[2][4] = downstair
 
     def recycle(self, stair = False):
         self.dead = False
@@ -536,9 +595,9 @@ class Enemy():
             self.spawnx, self.spawny = 0, 0
             self.currentloc = ((0, 0), (0, 0))
             
+#kill me now
 #Name, HP, Attack, Armor, XP, image
 enemies = [
-#---MONSTERS GO HERE---#
 Enemy("Goblin", 5, 0, 5, 2, goblin),
 Enemy("Goblin", 5, 0, 5, 2, goblin),
 Enemy("Goblin", 5, 0, 5, 2, goblin),
@@ -579,12 +638,13 @@ Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
 Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
 Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
 Enemy("Guinea Pig", 3, 3, 7, 3, guinea)
-#---NONSTERS END HERE---#
 ]
 
 bosses = [
-Enemy("Troll", 15, 6, 6, 15, troll)
+Enemy("Troll", 15, 6, 6, 15, troll),
+Enemy("Skeleton", 75, 6, 5, 80, skeleton)
 ]
+
 def getrandmon():
     rn = random.randint(1, 100)
     if floor < 3:
@@ -941,9 +1001,9 @@ def loadmap(direct):
 
     if (floor, room) == (5, 2) and direct == 'RIGHT':
         ply = 1
-    """if (floor, room) == (10, x):
-        pl = num
-    if (floor, room) == (15, x):
+    if (floor, room) == (10, 1) and direct == 'UP':
+        plx = 8
+    """if (floor, room) == (15, x):
         pl = num"""
 
     newmap = "rooms/fl" + str(floor) + "r" + str(room) + ".txt"
@@ -1122,7 +1182,6 @@ while True:
             move('UP')
         if event.key == pygame.K_DOWN:
             move('DOWN')
-            floor = 5
         if event.key == pygame.K_LEFT:
             move('LEFT')
         if event.key == pygame.K_RIGHT:
@@ -1155,11 +1214,14 @@ while True:
                 pygame.display.update()
                 enemies[i].enx, enemies[i].eny = 0, 0
                 enemies[i].recycle()
-        for i in range(1):
+        for i in range(2):
             bosses[i].die()
-            if bosses[i].dead == False:
+            if bosses[i].dead == False and bosses[i].name != "Skeleton":
                 tempgo = bosses[i].keepgo
                 bosses[i].keepgo = bosses[i].enmv(tempgo)
+            elif bosses[i].name == "Skeleton" and bosses[i].loaded == True:
+                tempskelgo = skelgo
+                skelgo = bosses[i].forskellyonly(tempskelgo)
             else:
                 if bosses[i].drop != None and bosses[i].drop != 0:
                     foremap[bosses[i].enx][bosses[i].eny] = bosses[i].drop
