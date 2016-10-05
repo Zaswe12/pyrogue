@@ -475,6 +475,37 @@ class Enemy():
             foremap[self.enx][self.eny] = self.image
         return direct
 
+    def skellycheck(self, xy):
+        #for the x axis
+        if xy == True:
+            x1 = self.enx
+            x2 = self.enx
+            #is there a better way to do this?
+            while foremap[x1][self.eny] != wall and foremap[x1][self.eny] != statue and foremap[x1][self.eny] != door:
+                x1 += 1
+            while foremap[x2][self.eny] != wall and foremap[x2][self.eny] != statue and foremap[x2][self.eny] != door:
+                x2 -= 1
+            if x1 - self.enx > self.enx - x2 and foremap[self.enx + 1][self.eny] == ground:
+                self.enx += 1
+                return 'DOWN'
+            elif foremap[self.enx - 1][self.eny] == ground:
+                self.enx -= 1
+                return 'UP'
+        #for the y axis
+        if xy == False:
+            y1 = self.eny
+            y2 = self.eny
+            while foremap[self.enx][y1] != wall and foremap[self.enx][y1] != statue and foremap[self.enx][y1] != door:
+                y1 += 1
+            while foremap[self.enx][y1] != wall and foremap[self.enx][y1] != statue and foremap[self.enx][y1] != door:
+                y2 -= 1
+            if y1 - self.eny > self.eny - y2 and foremap[self.enx][self.eny + 1] == ground:
+                self.eny += 1
+                return 'RIGHT'
+            elif foremap[self.enx][self.eny - 1] == ground:
+                self.eny -= 1
+                return 'LEFT'
+
     def forskellymagic(self, hp):
         #animations?
         rn = random.randint(1, 10)
@@ -494,24 +525,38 @@ class Enemy():
         direct = keepgoskel
         enpos = (self.enx, self.eny)
         rn = random.randint(0, 10)
-        if ((self.enx - 1 == plx or self.enx + 1 == plx) and self.eny == ply) or (self.enx == plx and (self.eny + 1 == ply or self.eny - 1 == ply)):
+        if (self.enx - 1 == plx or self.enx + 1 == plx) and self.eny == ply:
                 if rn <= 3:
                     if self.enx - 1 == plx and foremap[self.enx + 1][self.eny] == ground:
                         foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                         self.enx += 1
-                        direct = 'UP'
-                    if self.enx + 1 == plx and foremap[self.enx - 1][self.eny] == ground:
+                        direct = 'DOWN'
+                    elif self.enx + 1 == plx and foremap[self.enx - 1][self.eny] == ground:
                         foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                         self.enx -= 1
-                        direct = 'DOWN'
+                        direct = 'UP'
+                    else:
+                        foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
+                        direct = self.skellycheck(False)
+                    foremap[self.enx][self.eny] = self.image
+                    moved = True
+                if rn > 3 or enpos == (self.enx, self.eny):
+                    plhp = self.enatt(plhp)
+                    moved = False
+                return direct
+        if self.enx == plx and (self.eny + 1 == ply or self.eny - 1 == ply):
+                if rn <= 3:
                     if self.eny - 1 == ply and foremap[self.enx][self.eny + 1] == ground:
                         foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                         self.eny += 1
-                        direct = 'LEFT'
-                    if self.eny + 1 == ply and foremap[self.enx][self.eny - 1] == ground:
+                        direct = 'RIGHT'
+                    elif self.eny + 1 == ply and foremap[self.enx][self.eny - 1] == ground:
                         foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                         self.eny -= 1
-                        direct = 'RIGHT'
+                        direct = 'LEFT'
+                    else:
+                        foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
+                        direct = self.skellycheck(True)
                     foremap[self.enx][self.eny] = self.image
                     moved = True
                 if rn > 3 or enpos == (self.enx, self.eny):
@@ -520,7 +565,7 @@ class Enemy():
                 return direct
         else:
             #checks each direction to see if they are more than 2 spaces away from the player
-            if moved == False and self.enx - plx > 2 or self.enx - plx < -2 or self.eny - ply > 2 or self.eny - ply < -2:
+            if moved == False and self.enx - plx >= 2 or self.enx - plx <= -2 or self.eny - ply >= 2 or self.eny - ply <= -2:
                 if self.los() == True and random.randint(0, 10) <= 3:
                     plhp = self.forskellymagic(plhp)
                     moved = True
@@ -539,7 +584,7 @@ class Enemy():
                         self.eny -= 1
                         direct = 'LEFT'
                 if keepgoskel == 'RIGHT':
-                    if foremap[self.enx][self.eny - 1] == ground:
+                    if foremap[self.enx][self.eny + 1] == ground:
                         self.eny += 1
                         direct = 'RIGHT'
                 foremap[self.enx][self.eny] = self.image
@@ -1077,6 +1122,8 @@ def loadmap(direct):
                 foremap[i][j] = downstair
                 backmap[i][j] = downstair
                 downstrpos = (i, j)
+    if (room, floor) == (1, 10):
+        downstrpos = (2, 4)
 
 #it's terrible, I know
 def move(x):
@@ -1219,7 +1266,7 @@ while True:
             if bosses[i].dead == False and bosses[i].name != "Skeleton":
                 tempgo = bosses[i].keepgo
                 bosses[i].keepgo = bosses[i].enmv(tempgo)
-            elif bosses[i].name == "Skeleton" and bosses[i].loaded == True:
+            elif bosses[i].name == "Skeleton" and bosses[i].loaded == True and bosses[i].dead == False:
                 tempskelgo = skelgo
                 skelgo = bosses[i].forskellyonly(tempskelgo)
             else:
