@@ -9,3 +9,10 @@ Arrow keys to move
 i to open and close inventory  
 Enter to select  
 ,(comma) to pick up items
+
+# Install
+Download and install python 2.7.*  
+https://python.org/downloads/  
+Download and install pygame 1.9.*  
+https://pygame.org/download.shtml  
+Run main.py with python
