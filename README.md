@@ -14,5 +14,5 @@ Enter to select
 Download and install python 2.7.*  
 https://python.org/downloads/  
 Download and install pygame 1.9.*  
-https://pygame.org/download.shtml  
+http://pygame.org/download.shtml  
 Run main.py with python

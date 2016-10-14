@@ -219,7 +219,7 @@ def levelup(lvlxp):
         screen.fill(pygame.Color("black"), (0, 515, 600, 85))
         for i in range(len(stats)):
             screen.blit(log.render(stats[i], True, pygame.Color("white")), (30, 525 + i * 20))
-        screen.blit(log.render("_______", True, pygame.Color("white")), (30, 528))
+        screen.blit(log.render("__", True, pygame.Color("white")), (30, 528))
         pygame.display.update()
 
         done = False
@@ -236,7 +236,13 @@ def levelup(lvlxp):
                 if select.key == pygame.K_RETURN:
                     choice = stats[cursor]
                     done = True
-            screen.blit(log.render("_______", True, pygame.Color("white")), (30, (cursor * 20) + 528))
+            if cursor == 0:
+                cursline = "_" * len("HP")
+            if cursor == 1:
+                cursline = "_" * len("Attack")
+            if cursor == 2:
+                cursline = "_" * len("Defence")
+            screen.blit(log.render(cursline, True, pygame.Color("white")), (30, (cursor * 20) + 528))
             pygame.display.update()
 
         if choice == "HP":
@@ -425,6 +431,7 @@ class Enemy():
             return hp - (self.att + rn)
         elif self.loaded == True and nodam == True:
             updatelog('nodam', self.name)
+            return hp
 
     def enmv(self, direct): #at least it works
         global foremap, plhp
@@ -464,36 +471,36 @@ class Enemy():
             foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
 
             if self.los() == True:
-                if self.enx < plx and down == ground or down == bag or down == treasure or down == upstair or down == downstair:
+                if self.enx < plx and down == ground or down == bag or down == treasure or down == upstair or down == downstair or down == key:
                     self.enx += 1
-                elif self.enx > plx and up == ground or up == bag or up == treasure or up == upstair or up == downstair:
+                elif self.enx > plx and up == ground or up == bag or up == treasure or up == upstair or up == downstair or up == key:
                     self.enx -= 1
-                elif self.eny < ply and right == ground or right == bag or right == treasure or right == upstair or right == downstair:
+                elif self.eny < ply and right == ground or right == bag or right == treasure or right == upstair or right == downstair or right == key:
                     self.eny += 1
-                elif self.eny > ply and left == ground or left == bag or left == treasure or left == upstair or left == downstair:
+                elif self.eny > ply and left == ground or left == bag or left == treasure or left == upstair or left == downstair or left == key:
                     self.eny -= 1
 
             else:
                 if direct == 'DOWN':
-                    if down == ground or down == bag or down == treasure or down == upstair or down == downstair:
+                    if down == ground or down == bag or down == treasure or down == upstair or down == downstair or down == key:
                         self.enx += 1
                     else:
                         foremap[self.enx][self.eny] = self.image
                         return leri
                 elif direct == 'UP':
-                    if up == ground or up == bag or up == treasure or up == upstair or up == downstair:
+                    if up == ground or up == bag or up == treasure or up == upstair or up == downstair or up == key:
                         self.enx -= 1
                     else:
                         foremap[self.enx][self.eny] = self.image
                         return leri
                 elif direct == 'RIGHT':
-                    if right == ground or right == bag or right == treasure or right == upstair or right == downstair:
+                    if right == ground or right == bag or right == treasure or right == upstair or right == downstair or right == key:
                         self.eny += 1
                     else:
                         foremap[self.enx][self.eny] = self.image
                         return updo
                 elif direct == 'LEFT':
-                    if left == ground or left == bag or left == treasure or left == upstair or left == downstair:
+                    if left == ground or left == bag or left == treasure or left == upstair or left == downstair or left == key:
                         self.eny -= 1
                     else:
                         foremap[self.enx][self.eny] = self.image
@@ -715,26 +722,26 @@ class Enemy():
 #Name, HP, Attack, Armor, XP, image
 enemies = [
 #---Floors 1-5---#
-Enemy("Goblin", 5, 0, 5, 2, goblin),
-Enemy("Goblin", 5, 0, 5, 2, goblin),
-Enemy("Goblin", 5, 0, 5, 2, goblin),
-Enemy("Goblin", 5, 0, 5, 2, goblin),
-Enemy("Goblin", 5, 0, 5, 2, goblin),
-Enemy("Goblin", 5, 0, 5, 2, goblin),
-Enemy("Goblin", 5, 0, 5, 2, goblin),
-Enemy("Goblin", 5, 0, 5, 2, goblin),
-Enemy("Goblin", 5, 0, 5, 2, goblin),
-Enemy("Goblin", 5, 0, 5, 2, goblin),
-Enemy("Rat", 3, 0, 3, 1, rat),
-Enemy("Rat", 3, 0, 3, 1, rat),
-Enemy("Rat", 3, 0, 3, 1, rat),
-Enemy("Rat", 3, 0, 3, 1, rat),
-Enemy("Rat", 3, 0, 3, 1, rat),
-Enemy("Rat", 3, 0, 3, 1, rat),
-Enemy("Rat", 3, 0, 3, 1, rat),
-Enemy("Rat", 3, 0, 3, 1, rat),
-Enemy("Rat", 3, 0, 3, 1, rat),
-Enemy("Rat", 3, 0, 3, 1, rat),
+Enemy("Goblin", 5, 0, 5, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, goblin),
+Enemy("Rat", 3, 0, 3, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, rat),
 Enemy("Snake", 5, 1, 5, 3, snake),
 Enemy("Snake", 5, 1, 5, 3, snake),
 Enemy("Snake", 5, 1, 5, 3, snake),
@@ -1024,11 +1031,11 @@ def keystatus():
         if haskey[i] != 0:
             numkey += 1
     if numkey == 0:
-        screen.fill(pygame.Color("black"), (400, 550, 15, 15))   
-        screen.fill(pygame.Color("black"), (350, 500, 50, 50))
+        screen.fill(pygame.Color("black"), (480, 550, 15, 15))   
+        screen.fill(pygame.Color("black"), (450, 500, 50, 50))
     else:
-        screen.blit(log.render(str(numkey), True, pygame.Color("white")), (405, 550))
-        screen.blit(keyinv, (350, 500))
+        screen.blit(log.render(str(numkey), True, pygame.Color("white")), (485, 550))
+        screen.blit(keyinv, (450, 500))
 
 def pickup():
     global keypos, haskey, invmax, itemrmflxy
@@ -1054,20 +1061,35 @@ def pickup():
 
 def openinv():
     cursor = 0
+    colmax = 9
+    invmaxmax = colmax * 2
     while True:
         screen.fill(pygame.Color("black"), (0, 0, 500, 500))
         temp = 0
+        col = 0
         done = False
         for i in range(len(items)):
-            if items[i].ininv == True:
-                screen.blit(log.render(items[i].name + "    " + str(items[i].value), True, pygame.Color("white")), (50, (temp * 50) + 50))
+            if items[i].ininv == True and items[i].damage == 0 and items[i].value != 0:
+                screen.blit(log.render(items[i].name + "    " + str(items[i].value), True, pygame.Color("white")), (50 * col, (temp * 50) + 50))
+                items[i].curs = temp
+                temp += 1
+            if items[i].ininv == True and items[i].damage == 0 and items[i].value == 0:
+                screen.blit(log.render(items[i].name, True, pygame.Color("white")), (50, (temp * 50) + 50))
+                items[i].curs = temp
+                temp += 1
+            if items[i].ininv == True and items[i].damage != 0:
+                screen.blit(log.render(items[i].name + "    " + str(items[i].value) + "  " + str(items[i].damage), True, pygame.Color("white")), (50, (temp * 50) + 50))
                 items[i].curs = temp
                 temp += 1
             if items[i].equip == True:
                 screen.blit(log.render("*", True, pygame.Color("white")), (40, (items[i].curs * 50) + 50))
             if items[i].equip == False:
-                screen.fill(pygame.Color("black"), (38, (items[i].curs * 50) + 48, 15, 10))
-        screen.blit(log.render("________", True, pygame.Color("white")), (50, (cursor * 50) + 60))
+                screen.fill(pygame.Color("black"), (38, (items[i].curs * 50) + 48, 10, 10))
+
+            if cursor == items[i].curs:
+                cursline = "_" * len(items[i].name)
+
+        screen.blit(log.render(cursline, True, pygame.Color("white")), (50, (cursor * 50) + 60))
         pygame.display.update()
 
         select = pygame.event.wait()
@@ -1101,7 +1123,10 @@ def openinv():
                         items[i].drop()
             if select.key == pygame.K_i:
                 return
-        screen.blit(log.render("________", True, pygame.Color("white")), (50, (cursor * 50) + 60))
+        for i in range(len(items)):
+            if cursor == items[i].curs:
+                cursline = "_" * len(items[i].name)
+        screen.blit(log.render(cursline, True, pygame.Color("white")), (50, (cursor * 50) + 60))
         pygame.display.update()
 
 def attack(enemy, weapon):
@@ -1113,7 +1138,7 @@ def attack(enemy, weapon):
             updatelog('att', enemy.name, dam)
             return enemy.hp - dam
         else:
-            updatelog('miss')
+            updatelog('miss', enemy.name)
             return enemy.hp
 
     if rn + weapon.value + platt > enemy.armor:
