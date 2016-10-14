@@ -752,16 +752,16 @@ Enemy("Snake", 5, 1, 5, 3, snake),
 Enemy("Snake", 5, 1, 5, 3, snake),
 Enemy("Snake", 5, 1, 5, 3, snake),
 Enemy("Snake", 5, 1, 5, 3, snake),
-Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
 #---Floors 6-10---#
 Enemy("Megabat", 10, 4, 10, 5, megabat),
 Enemy("Megabat", 10, 4, 10, 5, megabat),
@@ -898,7 +898,7 @@ def getitem(x, y, kind, bagkind = 0):
     armorhigh = Item("Platinum Armor", 'ARM', 9, treasure)
 
     weakpot = Item("Weak Potion", 'HEAL', 5, bag)
-    pot = Item("Potion", 'HEAL', 10, bag)
+    pot = Item("Potion", 'HEAL', 20, bag)
     strpot = Item("Strong Potion", 'HEAL', 30, bag)
     ant = Item("Antidote", 'PSN', 0, bag)
     paraheal = Item("Paralysis Heal", 'PARA', 0, bag)
@@ -995,7 +995,16 @@ def getitem(x, y, kind, bagkind = 0):
                 tempitem = weakpot
             if rn > 80:
                 tempitem = ant
-        if floor >= 5 and floor < 10:
+        if floor > 2 and floor <= 5:
+            if rn <= 30:
+                tempitem = weakpot
+            if rn > 30 and rn <= 60:
+                tempitem = pot
+            if rn > 60 and rn <= 80:
+                tempitem = ant
+            if rn > 80:
+                tempitem = paraheal
+        if floor >= 6 and floor < 10:
             if rn <= 30:
                 tempitem = pot
             if rn > 30 and rn <= 40:
@@ -1063,22 +1072,28 @@ def openinv():
     cursor = 0
     colmax = 9
     invmaxmax = colmax * 2
+    cursline = "_"
     while True:
         screen.fill(pygame.Color("black"), (0, 0, 500, 500))
         temp = 0
         col = 0
+        colchange = False
         done = False
         for i in range(len(items)):
+            if i > colmax and colchange == False:
+                col = 1
+                temp = 0
+                colchange = True
             if items[i].ininv == True and items[i].damage == 0 and items[i].value != 0:
-                screen.blit(log.render(items[i].name + "    " + str(items[i].value), True, pygame.Color("white")), (50 * col, (temp * 50) + 50))
+                screen.blit(log.render(items[i].name + "    " + str(items[i].value), True, pygame.Color("white")), (50 + (250 * col), (temp * 50) + 50))
                 items[i].curs = temp
                 temp += 1
             if items[i].ininv == True and items[i].damage == 0 and items[i].value == 0:
-                screen.blit(log.render(items[i].name, True, pygame.Color("white")), (50, (temp * 50) + 50))
+                screen.blit(log.render(items[i].name, True, pygame.Color("white")), (50 + (250 * col), (temp * 50) + 50))
                 items[i].curs = temp
                 temp += 1
             if items[i].ininv == True and items[i].damage != 0:
-                screen.blit(log.render(items[i].name + "    " + str(items[i].value) + "  " + str(items[i].damage), True, pygame.Color("white")), (50, (temp * 50) + 50))
+                screen.blit(log.render(items[i].name + "    " + str(items[i].value) + "  " + str(items[i].damage), True, pygame.Color("white")), (50 + (250 * col), (temp * 50) + 50))
                 items[i].curs = temp
                 temp += 1
             if items[i].equip == True:
@@ -1093,13 +1108,14 @@ def openinv():
         pygame.display.update()
 
         select = pygame.event.wait()
+        pdb.set_trace()
         screen.fill(pygame.Color("black"), (45, (cursor * 50) + 65, 90, 10))
         if select.type == pygame.QUIT:
             sys.exit()
         elif select.type == pygame.KEYDOWN:
             if select.key == pygame.K_UP and cursor - 1 >= 0:
                 cursor -= 1
-            if select.key == pygame.K_DOWN and cursor + 1 <= invmax:
+            if select.key == pygame.K_DOWN and cursor + 1 <= invmax and cursor != :
                 cursor += 1
             if select.key == pygame.K_RETURN:
                 i = 0
