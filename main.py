@@ -6,6 +6,7 @@ import pdb
 pygame.init()
 
 screen = pygame.display.set_mode((500, 600))
+pygame.display.set_caption("PyRogue")
 pygame.event.set_allowed(None)
 pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN])
 pygame.font.init()
@@ -61,8 +62,14 @@ goblin = pygame.image.load('graphics/goblin.png').convert()
 rat = pygame.image.load('graphics/rat.png').convert()
 snake = pygame.image.load('graphics/snake.png').convert()
 guinea = pygame.image.load('graphics/guinea.png').convert()
+megabat = pygame.image.load('graphics/megabat.png').convert()
+mammoth = pygame.image.load('graphics/mammoth.png').convert()
+monster = pygame.image.load('graphics/monster.png').convert()
+knight = pygame.image.load('graphics/knight.png').convert()
+ghost = pygame.image.load('graphics/ghost.png').convert()
 troll = pygame.image.load('graphics/troll.png').convert()
 skeleton = pygame.image.load('graphics/skeleton.png').convert()
+finalboss = pygame.image.load('graphics/finalboss.png').convert()
 treasure = pygame.image.load('graphics/treasure.png').convert()
 bag = pygame.image.load('graphics/bag.png').convert()
 key = pygame.image.load('graphics/key.png').convert()
@@ -95,7 +102,7 @@ platt = 1
 armor = 10
 invmax = -1
 itemrmflxy = [((0, 0), (0, 0))]
-haskey = False
+haskey = [0, 0, 0, 0]
 
 if debug == True:
     plhp = 9999
@@ -119,6 +126,9 @@ screen.blit(log.render("HP: " + str(plhp) + "/" + str(maxhp), True, pygame.Color
 screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (150, 500))
 
 skelgo = 'UP'
+multiroomboss = False
+loadedroom = False
+finalset = False
 
 #spilts the 1D array into 2D
 for i in range(10):
@@ -175,11 +185,15 @@ def updatelog(kind, thing = 0, value = 0):
     if kind == 'nodam':
         text[0] = log.render("The " + thing + " hits you but you don't take any damage", True, pygame.Color("white"))
     if kind == 'magi':
-        text[0] = log.render("The " + thing + "shoots a fireball at you", True, pygame.Color("red"))
+        text[0] = log.render("The " + thing + " shoots a fireball at you", True, pygame.Color("red"))
     if kind == 'magihit':
         text[0] = log.render("It hits for " + value + " damage", True, pygame.Color("red"))
     if kind == 'magimiss':
         text[0] = log.render("It misses", True, pygame.Color("white"))
+    if kind == "telein":
+        text[0] = log.render("The " + thing + " appears out of thin air", True, pygame.Color("white"))
+    if kind == "teleout":
+        text[0] = log.render("The " + thing + " vanishes before your eyes", True, pygame.Color("white"))
     if kind == 'pick':
         text[0] = log.render("You pick up the " + thing, True, pygame.Color("white"))
     if kind == 'heal':
@@ -349,7 +363,10 @@ class Enemy():
     loaded = False
     dead = False
     boss = False
+    teleported = False
     keepgo = 'UP'
+    stage = 0
+    enroom = 0
     rmfl = (0, 0)
     currentloc = ((0, 0), (0, 0)) # room, floor, x, y
     diedin = [(0, 0, 0, 0)] # same as ^ but worse and I don't want to change it
@@ -380,12 +397,15 @@ class Enemy():
         else:
             return False
 
-    def enatt(self, hp):
+    def enatt(self, hp, spec = 0):
         global psn, para, paramax
         if self.loaded == True and nodam == False:
             rn = random.randint(0, 2)
             rnstatus = random.randint(0, 100)
             updatelog('dam', self.name, self.att + rn)
+            if spec == "para":
+                para = True
+                paramax = 8
             if self.name == "Rat":
                 if rnstatus <= 10:
                     psn = True
@@ -395,6 +415,13 @@ class Enemy():
                 if rnstatus > 10 and rnstatus <= 20:
                     para = True
                     paramax = 3
+            if self.name == "Skeleton":
+                if rnstatus <= 20:
+                    para = True
+                    paramax = 5
+            if self.name == "FINAL BOSS" and self.stage == 3:
+                if random.randint(0, 100) <= 10:
+                    self.tele()
             return hp - (self.att + rn)
         elif self.loaded == True and nodam == True:
             updatelog('nodam', self.name)
@@ -475,15 +502,37 @@ class Enemy():
             foremap[self.enx][self.eny] = self.image
         return direct
 
+    def tele(self):
+        foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
+        updatelog("teleout", self.name)
+        self.enx, self.eny = 5, 5
+        self.teleported = True
+        rn = random.randint(0, 2)
+        if rn == 0:
+            if self.enroom != 1 or self.enroom != 4:
+                self.enroom -= 1
+            else:
+                self.enroom += 1
+        if rn == 1:
+            if self.enroom != 3 or self.enroom != 6:
+                self.enroom += 1
+            else:
+                self.enroom -= 1
+        if rn == 2:
+            if self.enroom >= 4:
+                self.enroom -= 3
+            else:
+                self.enroom += 3
+
     def skellycheck(self, xy):
         #for the x axis
         if xy == True:
             x1 = self.enx
             x2 = self.enx
             #is there a better way to do this?
-            while foremap[x1][self.eny] != wall and foremap[x1][self.eny] != statue and foremap[x1][self.eny] != door:
+            while foremap[x1][self.eny] != wall and foremap[x1][self.eny] != statue and foremap[x1][self.eny] != door and x1 + 1 < 10:
                 x1 += 1
-            while foremap[x2][self.eny] != wall and foremap[x2][self.eny] != statue and foremap[x2][self.eny] != door:
+            while foremap[x2][self.eny] != wall and foremap[x2][self.eny] != statue and foremap[x2][self.eny] != door and x2 - 1 > -1:
                 x2 -= 1
             if x1 - self.enx > self.enx - x2 and foremap[self.enx + 1][self.eny] == ground:
                 self.enx += 1
@@ -495,9 +544,9 @@ class Enemy():
         if xy == False:
             y1 = self.eny
             y2 = self.eny
-            while foremap[self.enx][y1] != wall and foremap[self.enx][y1] != statue and foremap[self.enx][y1] != door:
+            while foremap[self.enx][y1] != wall and foremap[self.enx][y1] != statue and foremap[self.enx][y1] != door and y1 + 1 < 10:
                 y1 += 1
-            while foremap[self.enx][y1] != wall and foremap[self.enx][y1] != statue and foremap[self.enx][y1] != door:
+            while foremap[self.enx][y1] != wall and foremap[self.enx][y1] != statue and foremap[self.enx][y1] != door and y2 - 1 > -1:
                 y2 -= 1
             if y1 - self.eny > self.eny - y2 and foremap[self.enx][self.eny + 1] == ground:
                 self.eny += 1
@@ -526,43 +575,65 @@ class Enemy():
         enpos = (self.enx, self.eny)
         rn = random.randint(0, 10)
         if (self.enx - 1 == plx or self.enx + 1 == plx) and self.eny == ply:
+            if self.name == "FINAL BOSS" and self.stage == 2:
+                rn = random.randint(1, 10)
                 if rn <= 3:
-                    if self.enx - 1 == plx and foremap[self.enx + 1][self.eny] == ground:
-                        foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
-                        self.enx += 1
-                        direct = 'DOWN'
-                    elif self.enx + 1 == plx and foremap[self.enx - 1][self.eny] == ground:
-                        foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
-                        self.enx -= 1
-                        direct = 'UP'
-                    else:
-                        foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
-                        direct = self.skellycheck(False)
-                    foremap[self.enx][self.eny] = self.image
-                    moved = True
+                    self.tele()
+                    return 'UP'
+            if rn <= 3:
+                if self.enx + 1 <= 9 and self.enx - 1 == plx and foremap[self.enx + 1][self.eny] == ground:
+                    if self.name == "FINAL BOSS":
+                        plhp = self.enatt(plhp, "para")
+                    foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
+                    self.enx += 1
+                    direct = 'DOWN'
+                elif self.enx - 1 >= 0 and self.enx + 1 == plx and foremap[self.enx - 1][self.eny] == ground:
+                    if self.name == "FINAL BOSS":
+                        plhp = self.enatt(plhp, "para")
+                    foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
+                    self.enx -= 1
+                    direct = 'UP'
+                else:
+                    if self.name == "FINAL BOSS":
+                        plhp = self.enatt(plhp, "para")
+                    foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
+                    direct = self.skellycheck(False)
+                foremap[self.enx][self.eny] = self.image
+                moved = True
                 if rn > 3 or enpos == (self.enx, self.eny):
                     plhp = self.enatt(plhp)
                     moved = False
                 return direct
         if self.enx == plx and (self.eny + 1 == ply or self.eny - 1 == ply):
+            if self.name == "FINAL BOSS" and self.stage == 2:
+                rn = random.randint(1, 10)
                 if rn <= 3:
-                    if self.eny - 1 == ply and foremap[self.enx][self.eny + 1] == ground:
-                        foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
-                        self.eny += 1
-                        direct = 'RIGHT'
-                    elif self.eny + 1 == ply and foremap[self.enx][self.eny - 1] == ground:
-                        foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
-                        self.eny -= 1
-                        direct = 'LEFT'
-                    else:
-                        foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
-                        direct = self.skellycheck(True)
-                    foremap[self.enx][self.eny] = self.image
-                    moved = True
-                if rn > 3 or enpos == (self.enx, self.eny):
-                    plhp = self.enatt(plhp)
-                    moved = False
-                return direct
+                    self.tele()
+                    return 'UP'
+            if rn <= 3:
+                if self.eny + 1 <= 9 and self.eny - 1 == ply and foremap[self.enx][self.eny + 1] == ground:
+                    if self.name == "FINAL BOSS":
+                        plhp = self.enatt(plhp, "para")
+                    foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
+                    self.eny += 1
+                    direct = 'RIGHT'
+                elif self.eny - 1 >= 0 and self.eny + 1 == ply and foremap[self.enx][self.eny - 1] == ground:
+                    if self.name == "FINAL BOSS":
+                        plhp = self.enatt(plhp, "para")
+                    foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
+                    self.eny -= 1
+                    direct = 'LEFT'
+                else:
+                    if self.name == "FINAL BOSS":
+                        plhp = self.enatt(plhp, "para")
+                    foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
+                    direct = self.skellycheck(True)
+                foremap[self.enx][self.eny] = self.image
+                moved = True
+            if rn > 3 or enpos == (self.enx, self.eny):
+                plhp = self.enatt(plhp)
+                moved = False
+            return direct
         else:
             #checks each direction to see if they are more than 2 spaces away from the player
             if moved == False and self.enx - plx >= 2 or self.enx - plx <= -2 or self.eny - ply >= 2 or self.eny - ply <= -2:
@@ -571,19 +642,19 @@ class Enemy():
                     moved = True
             if moved == False:
                 foremap[self.enx][self.eny] = ground
-                if keepgoskel == 'UP':
+                if keepgoskel == 'UP' and self.enx - 1 >= 0:
                     if foremap[self.enx - 1][self.eny] == ground:
                         self.enx -= 1
                         direct = 'UP'
-                if keepgoskel == 'DOWN':
+                if keepgoskel == 'DOWN' and self.enx + 1 <= 9:
                     if foremap[self.enx + 1][self.eny] == ground:
                         self.enx += 1
                         direct = 'DOWN'
-                if keepgoskel == 'LEFT':
+                if keepgoskel == 'LEFT' and self.eny - 1 >= 0:
                     if foremap[self.enx][self.eny - 1] == ground:
                         self.eny -= 1
                         direct = 'LEFT'
-                if keepgoskel == 'RIGHT':
+                if keepgoskel == 'RIGHT' and self.eny + 1 <= 9:
                     if foremap[self.enx][self.eny + 1] == ground:
                         self.eny += 1
                         direct = 'RIGHT'
@@ -643,6 +714,7 @@ class Enemy():
 #kill me now
 #Name, HP, Attack, Armor, XP, image
 enemies = [
+#---Floors 1-5---#
 Enemy("Goblin", 5, 0, 5, 2, goblin),
 Enemy("Goblin", 5, 0, 5, 2, goblin),
 Enemy("Goblin", 5, 0, 5, 2, goblin),
@@ -682,12 +754,25 @@ Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
 Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
 Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
 Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, guinea)
+Enemy("Guinea Pig", 3, 3, 7, 3, guinea),
+#---Floors 6-10---#
+Enemy("Megabat", 10, 4, 10, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 5, megabat),
+Enemy("Mammoth", 13, 2, 8, 10, mammoth)
 ]
 
 bosses = [
 Enemy("Troll", 15, 6, 6, 15, troll),
-Enemy("Skeleton", 75, 6, 5, 80, skeleton)
+Enemy("Skeleton", 75, 6, 5, 80, skeleton),
+Enemy("FINAL BOSS", 200, 10, 6, 250, finalboss)
 ]
 
 def getrandmon():
@@ -755,12 +840,18 @@ def getmon(x, y):
                 return ground
 
 def placeboss(fl, x, y):
+    global finalset
     if fl == 5:
         num = 0
     if fl == 10:
         num = 1
     if fl == 15:
         num = 2
+        if finalset == True:
+            return ground
+        bosses[num].stage = 1
+        bosses[num].enroom = room
+        finalset = True
     if bosses[num].hp > 1:
         bosses[num].enx = x
         bosses[num].eny = y
@@ -772,6 +863,12 @@ def placeboss(fl, x, y):
         return bosses[num].image
     else:
         return ground
+
+def checkstage():
+    if bosses[2].hp <= 125:
+        bosses[2].stage = 2 
+    if bosses[2].hp <= 50:
+        bosses[2].stage = 3
 
 def getitem(x, y, kind, bagkind = 0):
 
@@ -887,9 +984,9 @@ def getitem(x, y, kind, bagkind = 0):
     if kind == 'B':
         rn = random.randint(0, 100) #get new item
         if floor < 5:
-            if rn <= 70:
+            if rn <= 80:
                 tempitem = weakpot
-            if rn > 70:
+            if rn > 80:
                 tempitem = ant
         if floor >= 5 and floor < 10:
             if rn <= 30:
@@ -920,14 +1017,30 @@ def getitem(x, y, kind, bagkind = 0):
     additem(items, tempitem)
     return tempitem.image
 
+def keystatus():
+    global haskey
+    numkey = 0
+    for i in range(len(haskey)):
+        if haskey[i] != 0:
+            numkey += 1
+    if numkey == 0:
+        screen.fill(pygame.Color("black"), (400, 550, 15, 15))   
+        screen.fill(pygame.Color("black"), (350, 500, 50, 50))
+    else:
+        screen.blit(log.render(str(numkey), True, pygame.Color("white")), (405, 550))
+        screen.blit(keyinv, (350, 500))
+
 def pickup():
     global keypos, haskey, invmax, itemrmflxy
-    if (plx, ply) == keypos:
-        haskey = True
-        keyused.append((room, floor))
-        foremap[plx][ply] = player 
-        backmap[plx][ply] = ground
-        updatelog('pick', "key")
+    for i in range(len(haskey)):
+        if (plx, ply) == keypos and haskey[i] == 0:
+            haskey[i] = floor
+            keyused.append((room, floor))
+            foremap[plx][ply] = player 
+            backmap[plx][ply] = ground
+            updatelog('pick', "key")
+            keystatus()
+            return
     for i in range(len(items)):
         if items[i].pos == (plx, ply) and items[i].rmfl == (room, floor):
             items[i].ininv = True
@@ -1012,11 +1125,12 @@ def attack(enemy, weapon):
 
 #load in another map file and display it on the screen
 def loadmap(direct):
-    global foremap, backmap, plx, ply, floor, room, upstrpos, downstrpos, keypos
+    global foremap, backmap, plx, ply, floor, room, upstrpos, downstrpos, keypos, loadedroom, wall, ground
     upstrpos = (0, 0)
     downstrpos = (0, 0)
     keypos = (0, 0)
     temp = False
+    loadedroom = True
 
     for i in range(len(enemies)):
         enemies[i].loaded = False
@@ -1043,13 +1157,25 @@ def loadmap(direct):
         floor += 1
         for i in range(len(enemies)):
             enemies[i].recycle(True)
+    if multiroomboss == True and room == bosses[2].enroom:
+        bosses[2].loaded = True
 
-    if (floor, room) == (5, 2) and direct == 'RIGHT':
+    if (floor, room) == (5, 2) and direct == 'RIGHT' and bosses[0].dead == False:
         ply = 1
-    if (floor, room) == (10, 1) and direct == 'UP':
+    if (floor, room) == (10, 1) and direct == 'UP' and bosses[1].dead == False:
         plx = 8
     """if (floor, room) == (15, x):
         pl = num"""
+
+    if floor <= 5:
+        wall = pygame.image.load('graphics/wall.png').convert()
+        ground = pygame.image.load('graphics/ground.png').convert()
+    if floor > 5 and floor <= 10:
+        wall = pygame.image.load('graphics/wall2.png').convert()
+        ground = pygame.image.load('graphics/ground2.png').convert()
+    if floor > 10:
+        wall = pygame.image.load('graphics/wall.png').convert()
+        ground = pygame.image.load('graphics/ground3.png').convert()
 
     newmap = "rooms/fl" + str(floor) + "r" + str(room) + ".txt"
     newmap = open(newmap, 'r')
@@ -1150,12 +1276,14 @@ def move(x):
                 bosses[i].hp = attack(bosses[i], weapon)
                 attacked = True
 
-        if foremap[plx - 1][ply] == door and haskey == True:
-            foremap[plx - 1][ply] = backmap[plx - 1][ply]
-            haskey = False
-            dooropen.append((room, floor))
+        for i in range(len(haskey)):
+            if foremap[plx - 1][ply] == door and haskey[i] == floor:
+                foremap[plx - 1][ply] = backmap[plx - 1][ply]
+                haskey[i] = 0
+                dooropen.append((room, floor))
+                keystatus()
 
-        elif foremap[plx - 1][ply] != wall and foremap[plx - 1][ply] != statue and foremap[plx - 1][ply] != door and load == False and attacked == False:
+        if foremap[plx - 1][ply] != wall and foremap[plx - 1][ply] != statue and foremap[plx - 1][ply] != door and load == False and attacked == False:
             plx -= 1
 
     if x == 'DOWN':
@@ -1189,6 +1317,14 @@ def move(x):
                 bosses[i].hp = attack(bosses[i], weapon)
                 attacked = True
 
+        #I only put this in the left and up, sue me
+        for i in range(len(haskey)):
+            if foremap[plx][ply - 1] == door and haskey[i] == floor:
+                foremap[plx][ply - 1] = backmap[plx][ply - 1]
+                haskey[i] = 0
+                dooropen.append((room, floor))
+                keystatus()
+
         if foremap[plx][ply - 1] != wall and foremap[plx][ply - 1] != statue and foremap[plx][ply - 1] != door and load == False and attacked == False:
             ply -= 1
 
@@ -1212,9 +1348,13 @@ def move(x):
     if x == 'STAIR_UP':
         if (plx, ply) == upstrpos:
             loadmap('STAIR_UP')
+        elif backmap[plx][ply] == upstair:
+            loadmap('STAIR_UP')
 
     if x == 'STAIR_DOWN':
         if (plx, ply) == downstrpos:
+            loadmap('STAIR_DOWN')
+        elif backmap[plx][ply] == downstair:
             loadmap('STAIR_DOWN')
 
     foremap[plx][ply] = player
@@ -1242,10 +1382,24 @@ while True:
         if event.key == pygame.K_COMMA:
             pickup()
 
-    if speedcount == 3:
+    if speedcount >= 3:
         speed == False
         speedcount = 0
         speedturn = 0
+
+    if floor == 15:
+        multiroomboss = True
+
+    if loadedroom == True and multiroomboss == True and bosses[2].dead == False and bosses[2].enroom == room:   #and and and and and
+        bosses[2].enx = 4
+        bosses[2].eny = 4
+        updatelog("telein", bosses[2].name)
+    if loadedroom == True and multiroomboss == True and bosses[2].dead == False and bosses[2].stage == 1: #oh gosh
+        bosses[2].enx = 4
+        bosses[2].eny = 4
+        updatelog("telein", bosses[2].name) #now this is what I call cutting corners
+    if bosses[2].enroom > 6 or bosses[2].enroom < 1 and multiroomboss == True:
+        bosses[2].enroom = 5
 
     if speed == False or speedturn == 1:
         for i in range(len(enemies)):
@@ -1258,15 +1412,21 @@ while True:
                     foremap[enemies[i].enx][enemies[i].eny] = enemies[i].drop
                     backmap[enemies[i].enx][enemies[i].eny] = enemies[i].drop
                 screen.blit(foremap[enemies[i].enx][enemies[i].eny], (enemies[i].enx * 50, enemies[i].eny * 50))
-                pygame.display.update()
+                screen.blit(wall, (0, 0)) #this and all the other wall blits at 0,0 are there because I got mad at the split second appearence of dead enemies in that spot
+                pygame.display.update() #and I don't know which one fixed it and I don't want to test it over and over
                 enemies[i].enx, enemies[i].eny = 0, 0
                 enemies[i].recycle()
-        for i in range(2):
+        for i in range(len(bosses)):
             bosses[i].die()
-            if bosses[i].dead == False and bosses[i].name != "Skeleton":
+            checkstage()
+            #I've given up at this point    look at all those useless ands
+            if bosses[i].dead == False and bosses[i].name == "FINAL BOSS" and bosses[i].enroom != room and bosses[i].stage >= 2 and bosses[i].teleported == True:
+                bosses[i].loaded = False
+                bosses[i].teleported = False
+            if (bosses[i].loaded == True and bosses[i].dead == False) and ((bosses[i].name != "Skeleton" and bosses[i].name != "FINAL BOSS") or bosses[i].stage == 3):
                 tempgo = bosses[i].keepgo
                 bosses[i].keepgo = bosses[i].enmv(tempgo)
-            elif bosses[i].name == "Skeleton" and bosses[i].loaded == True and bosses[i].dead == False:
+            elif bosses[i].loaded == True and bosses[i].dead == False:
                 tempskelgo = skelgo
                 skelgo = bosses[i].forskellyonly(tempskelgo)
             else:
@@ -1274,6 +1434,7 @@ while True:
                     foremap[bosses[i].enx][bosses[i].eny] = bosses[i].drop
                     backmap[bosses[i].enx][bosses[i].eny] = bosses[i].drop
                 screen.blit(foremap[bosses[i].enx][bosses[i].eny], (bosses[i].enx * 50, bosses[i].eny * 50))
+                screen.blit(wall, (0, 0))
                 pygame.display.update()
                 bosses[i].enx, bosses[i].eny = 0, 0
         speedcount += 1
@@ -1288,10 +1449,6 @@ while True:
     screen.fill(pygame.Color("black"), (150, 500, 100, 15))
     screen.blit(log.render(str(plhp), True, pygame.Color("white")), (86, 500)) #the weird number is used just to keep the value in the same place
     screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (150, 500))
-    if haskey == True:
-        screen.blit(keyinv, (350, 500))
-    else:
-        screen.fill(pygame.Color("black"), (350, 500, 50, 50))
 
     if psn == True:
         screen.blit(log.render("PSN", True, pygame.Color("purple")), (300, 500))
@@ -1303,7 +1460,7 @@ while True:
     if para == True:
         screen.blit(log.render("PARA", True, pygame.Color("red")), (350, 500))
         paracount += 1
-        if paracount == paramax:
+        if paracount >= paramax:
             para = False
             paracount = 0
     if nodam == True:
@@ -1331,8 +1488,15 @@ while True:
         event = pygame.event.wait()
         sys.exit()
 
+    foremap[0][0] = wall
+    backmap[0][0] = wall
+    screen.blit(wall, (0, 0))
+    pygame.display.update()
+    loadedroom = False
+
     for i in range(10):
         for j in range(10):
             screen.blit(foremap[i][j], (j * 50, i * 50))
     level = levelup(nextlvl[level])
+    keystatus()
     pygame.display.update()
