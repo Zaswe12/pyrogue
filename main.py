@@ -1104,19 +1104,22 @@ def openinv():
             if cursor == items[i].curs:
                 cursline = "_" * len(items[i].name)
 
-        screen.blit(log.render(cursline, True, pygame.Color("white")), (50, (cursor * 50) + 60))
+        screen.blit(log.render(cursline, True, pygame.Color("white")), (50 + (250 * col), (cursor * 50) + 60))
         pygame.display.update()
 
         select = pygame.event.wait()
-        pdb.set_trace()
         screen.fill(pygame.Color("black"), (45, (cursor * 50) + 65, 90, 10))
         if select.type == pygame.QUIT:
             sys.exit()
         elif select.type == pygame.KEYDOWN:
-            if select.key == pygame.K_UP and cursor - 1 >= 0:
+            if select.key == pygame.K_UP and cursor - 1 >= 0 and cursor != 10:
                 cursor -= 1
-            if select.key == pygame.K_DOWN and cursor + 1 <= invmax and cursor != :
+            if select.key == pygame.K_DOWN and cursor + 1 <= invmax and cursor != 9:
                 cursor += 1
+            if select.key == pygame.K_RIGHT and cursor <= 9:
+                cursor += 9
+            if select.key == pygame.K_LEFT and cursor > 9:
+                cursor -= 9
             if select.key == pygame.K_RETURN:
                 i = 0
                 trueornot = False
@@ -1142,7 +1145,7 @@ def openinv():
         for i in range(len(items)):
             if cursor == items[i].curs:
                 cursline = "_" * len(items[i].name)
-        screen.blit(log.render(cursline, True, pygame.Color("white")), (50, (cursor * 50) + 60))
+        screen.blit(log.render(cursline, True, pygame.Color("white")), (50 + (250 * col), (cursor * 50) + 60))
         pygame.display.update()
 
 def attack(enemy, weapon):
