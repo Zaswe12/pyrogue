@@ -270,6 +270,7 @@ class Item():
     pos = (0, 0)
     rmfl = (0, 0)
     curs = -1
+    col = -1
     listpos = None
     equip = False
     ininv = False
@@ -282,7 +283,7 @@ class Item():
         self.damage = damage
 
     def drop(self):
-        global invmax, foremap
+        global invmax, foremap, items
         if self.ininv == True:
             self.ininv = False
             self.dropped = True
@@ -360,6 +361,12 @@ items = [Item("Potion", 'HEAL', 5, bag)]
 def additem(itemlist, itemobj):
     itemobj.listpos = len(itemlist)
     return itemlist.append(itemobj)
+
+def sortitems(itemlist):
+    sorted(itemlist, key = lambda item: item.ininv, reverse = True)
+    for i in range(len(itemlist)):
+        itemlist[i].listpos = i + 1
+        itemlist[i].curs = i + 1
 
 #the enemy class    This is magic code now. I have forgotten what most of this is and how it works. I just know it works badly.
 class Enemy():
@@ -1071,19 +1078,27 @@ def pickup():
 def openinv():
     cursor = 0
     colmax = 9
+    colcurs = 0
     invmaxmax = colmax * 2
     cursline = "_"
     while True:
         screen.fill(pygame.Color("black"), (0, 0, 500, 500))
         temp = 0
         col = 0
+        col2max = -1
         colchange = False
         done = False
+        sortitems(items)
         for i in range(len(items)):
             if i > colmax and colchange == False:
                 col = 1
                 temp = 0
                 colchange = True
+            if col == 0 and items[i].ininv == True:
+                items[i].col = 0
+            if col == 1 and items[i].ininv == True:
+                items[i].col = 1
+                col2max += 1
             if items[i].ininv == True and items[i].damage == 0 and items[i].value != 0:
                 screen.blit(log.render(items[i].name + "    " + str(items[i].value), True, pygame.Color("white")), (50 + (250 * col), (temp * 50) + 50))
                 items[i].curs = temp
@@ -1104,7 +1119,7 @@ def openinv():
             if cursor == items[i].curs:
                 cursline = "_" * len(items[i].name)
 
-        screen.blit(log.render(cursline, True, pygame.Color("white")), (50 + (250 * col), (cursor * 50) + 60))
+        screen.blit(log.render(cursline, True, pygame.Color("white")), (50 + (250 * colcurs), (cursor * 50) + 60))
         pygame.display.update()
 
         select = pygame.event.wait()
@@ -1114,17 +1129,19 @@ def openinv():
         elif select.type == pygame.KEYDOWN:
             if select.key == pygame.K_UP and cursor - 1 >= 0 and cursor != 10:
                 cursor -= 1
-            if select.key == pygame.K_DOWN and cursor + 1 <= invmax and cursor != 9:
+            if select.key == pygame.K_DOWN and cursor + 1 <= invmax and cursor != 8:
                 cursor += 1
-            if select.key == pygame.K_RIGHT and cursor <= 9:
-                cursor += 9
-            if select.key == pygame.K_LEFT and cursor > 9:
-                cursor -= 9
+                if colcurs == 1 and cursor > col2max:
+                    cursor -= 1
+            if select.key == pygame.K_RIGHT and colcurs + 1 <= 1 and cursor <= col2max:
+                colcurs += 1
+            if select.key == pygame.K_LEFT and colcurs - 1 >= 0:
+                colcurs -= 1
             if select.key == pygame.K_RETURN:
                 i = 0
                 trueornot = False
                 while not done:
-                    if items[i].curs == cursor:
+                    if items[i].curs == cursor and items[i].col == colcurs:
                         if cursor - 1 != -1 and items[i].kind != "WEAP" and items[i].kind != "ARM":
                             cursor -= 1
                         trueornot = items[i].use()
@@ -1140,6 +1157,7 @@ def openinv():
                 for i in range(len(items)):
                     if items[i].curs == cursor:
                         items[i].drop()
+                        sortitems(items)
             if select.key == pygame.K_i:
                 return
         for i in range(len(items)):
@@ -1419,12 +1437,15 @@ while True:
             move('RIGHT')
         if event.key == pygame.K_COMMA and pygame.key.get_mods() & pygame.KMOD_SHIFT:
             move('STAIR_UP')
+            floor = 9
         if event.key == pygame.K_PERIOD and pygame.key.get_mods() & pygame.KMOD_SHIFT:
             move('STAIR_DOWN')
         if event.key == pygame.K_i:
             openinv()
         if event.key == pygame.K_COMMA:
             pickup()
+        if event.key == pygame.K_a:
+            pdb.set_trace()
 
     if speedcount >= 3:
         speed == False
