@@ -208,13 +208,16 @@ def updatelog(kind, thing = 0, value = 0):
     screen.blit(text[0], newlog)
 
 def levelup(lvlxp):
-    global xp, maxhp, platt, armor
+    global xp, maxhp, platt, armor, plhp
     if xp >= lvlxp:
-        rn = random.randint(0, 2)
         rnstat = 0
         cursor = 0
         updatelog('level', level + 1)
         stats = ["HP", "Attack", "Defence"]
+
+        maxhp += random.randint(2, 5)
+        platt += random.randint(1, 2)
+        armor += random.randint(1, 2)
 
         screen.fill(pygame.Color("black"), (0, 515, 600, 85))
         for i in range(len(stats)):
@@ -245,8 +248,9 @@ def levelup(lvlxp):
             screen.blit(log.render(cursline, True, pygame.Color("white")), (30, (cursor * 20) + 528))
             pygame.display.update()
 
+
         if choice == "HP":
-            rnstat = random.randint(5, 10)
+            rnstat = random.randint(3, 6)
             updatelog('stat', "HP", rnstat)
             maxhp += rnstat
             
@@ -261,6 +265,7 @@ def levelup(lvlxp):
             updatelog('stat', "defence", rnstat)
             armor += rnstat
 
+        plhp = maxhp
         xp = 0
         return level + 1
     else:
@@ -269,8 +274,8 @@ def levelup(lvlxp):
 class Item():
     pos = (0, 0)
     rmfl = (0, 0)
-    curs = -1
-    col = -1
+    row = None
+    col = None
     listpos = None
     equip = False
     ininv = False
@@ -362,11 +367,18 @@ def additem(itemlist, itemobj):
     itemobj.listpos = len(itemlist)
     return itemlist.append(itemobj)
 
-def sortitems(itemlist):
-    sorted(itemlist, key = lambda item: item.ininv, reverse = True)
+def restorelistpos(itemlist):
     for i in range(len(itemlist)):
-        itemlist[i].listpos = i + 1
-        itemlist[i].curs = i + 1
+        itemlist[i].listpos = i
+    return itemlist
+
+def iteminv(itemlist):
+    newitemlist = []
+    for i in range(len(itemlist)):
+        if itemlist[i].ininv == True:
+            newitemlist.append(itemlist[i])
+    if newitemlist != []:
+        return newitemlist
 
 #the enemy class    This is magic code now. I have forgotten what most of this is and how it works. I just know it works badly.
 class Enemy():
@@ -1075,8 +1087,83 @@ def pickup():
             invmax += 1
             updatelog('pick', items[i].name)
 
-def openinv():
-    cursor = 0
+def openinv(itemslist):
+    curschar = log.render(">", True, pygame.Color("white"))
+    col = 0
+    row = 0
+    rowmin = 0
+    colmin = 0
+    rowmax = 8
+    colmax = 1
+    log.set_underline(True)
+    #any easier way?
+    textatt = log.render("Att", True, pygame.Color("blue"))
+    textslash = log.render("/", True, pygame.Color("white"))
+    textheal = log.render("Heal", True, pygame.Color("yellow"))
+    textdam = log.render("Dam", True, pygame.Color("red"))
+    log.set_underline(False)
+    while True:
+        screen.fill(pygame.Color("black"), (0, 0, 500, 500))
+        screen.blit(textatt, (150, 25))
+        screen.blit(textslash, (175, 25))
+        screen.blit(textheal, (183, 25))
+        screen.blit(textdam, (225, 25))
+        invitems = iteminv(itemslist)
+        itemslist = restorelistpos(itemslist)
+
+        if invitems != None:
+            j = 0
+            for i in range(len(invitems)):
+                if i > rowmax:  #>=?
+                    j = 1
+                    invitems[i].row = i - 9
+                if j != 1:
+                    invitems[i].row = i
+                invitems[i].col = j
+
+            for i in range(len(invitems)):
+                slot = (50 + (250 * invitems[i].col), 60 + (50 * invitems[i].row))
+                if invitems[i].kind == 'WEAP' or invitems[i].kind == 'ARM':
+                    screen.blit(log.render(invitems[i].name + "     " + str(invitems[i].value), True, pygame.Color("blue")), slot)
+                    if invitems[i].equip == True:
+                        screen.blit(log.render("*", True, pygame.Color("blue")), (42 + (250 * invitems[i].col), 62 + (50 * invitems[i].row)))
+                    else:
+                        screen.fill(pygame.Color("black"), (40 + (250 * invitems[i].col), 60 + (50 * invitems[i].row), 5, 5))
+                if invitems[i].kind == 'WEAP':
+                    screen.blit(log.render(str(invitems[i].damage), True, pygame.Color("red")), (230 + (250 * invitems[i].col), 60 + (50 * invitems[i].row)))
+                if invitems[i].kind == 'HEAL':
+                    screen.blit(log.render(invitems[i].name + "     " + str(invitems[i].value), True, pygame.Color("yellow")), slot)
+                else:
+                    screen.blit(log.render(invitems[i].name, True, pygame.Color("white")), slot)
+
+        screen.blit(curschar, (35 + (250 * col), 60 + (50 * row)))
+
+        pygame.display.update()
+
+        select = pygame.event.wait()
+        screen.fill(pygame.Color("black"), (30 + (250 * col), 50 + (50 * row), 10, 10))
+        if select.type == pygame.QUIT:
+            sys.exit()
+        elif select.type == pygame.KEYDOWN:
+            if select.key == pygame.K_UP and row - 1 >= rowmin:
+                row -= 1
+            if select.key == pygame.K_DOWN and row + 1 <= rowmax:
+                row += 1
+            if select.key == pygame.K_LEFT and col - 1 >= colmin:
+                col -= 1
+            if select.key == pygame.K_RIGHT and col + 1 <= colmax:
+                col += 1
+            if select.key == pygame.K_RETURN:
+                for i in range(len(invitems)):
+                    if col == invitems[i].col and row == invitems[i].row:
+                        invitems[i].use()
+            if select.key == pygame.K_d:
+                for i in range(len(invitems)):
+                    if col == invitems[i].col and row == invitems[i].row:
+                        invitems[i].drop()
+            if select.key == pygame.K_i:
+                return
+    """cursor = 0
     colmax = 9
     colcurs = 0
     invmaxmax = colmax * 2
@@ -1140,6 +1227,7 @@ def openinv():
             if select.key == pygame.K_RETURN:
                 i = 0
                 trueornot = False
+                pdb.set_trace()
                 while not done:
                     if items[i].curs == cursor and items[i].col == colcurs:
                         if cursor - 1 != -1 and items[i].kind != "WEAP" and items[i].kind != "ARM":
@@ -1164,7 +1252,7 @@ def openinv():
             if cursor == items[i].curs:
                 cursline = "_" * len(items[i].name)
         screen.blit(log.render(cursline, True, pygame.Color("white")), (50 + (250 * col), (cursor * 50) + 60))
-        pygame.display.update()
+        pygame.display.update()"""
 
 def attack(enemy, weapon):
     rn = random.randint(1, 20) #d20
@@ -1441,123 +1529,124 @@ while True:
         if event.key == pygame.K_PERIOD and pygame.key.get_mods() & pygame.KMOD_SHIFT:
             move('STAIR_DOWN')
         if event.key == pygame.K_i:
-            openinv()
+            openinv(items)
         if event.key == pygame.K_COMMA:
             pickup()
         if event.key == pygame.K_a:
             pdb.set_trace()
 
-    if speedcount >= 3:
-        speed == False
-        speedcount = 0
-        speedturn = 0
+    if event.key != pygame.K_i and event.key != pygame.K_COMMA:
+        if speedcount >= 3:
+            speed == False
+            speedcount = 0
+            speedturn = 0
 
-    if floor == 15:
-        multiroomboss = True
+        if floor == 15:
+            multiroomboss = True
 
-    if loadedroom == True and multiroomboss == True and bosses[2].dead == False and bosses[2].enroom == room:   #and and and and and
-        bosses[2].enx = 4
-        bosses[2].eny = 4
-        updatelog("telein", bosses[2].name)
-    if loadedroom == True and multiroomboss == True and bosses[2].dead == False and bosses[2].stage == 1: #oh gosh
-        bosses[2].enx = 4
-        bosses[2].eny = 4
-        updatelog("telein", bosses[2].name) #now this is what I call cutting corners
-    if bosses[2].enroom > 6 or bosses[2].enroom < 1 and multiroomboss == True:
-        bosses[2].enroom = 5
+        if loadedroom == True and multiroomboss == True and bosses[2].dead == False and bosses[2].enroom == room:   #and and and and and
+            bosses[2].enx = 4
+            bosses[2].eny = 4
+            updatelog("telein", bosses[2].name)
+        if loadedroom == True and multiroomboss == True and bosses[2].dead == False and bosses[2].stage == 1: #oh gosh
+            bosses[2].enx = 4
+            bosses[2].eny = 4
+            updatelog("telein", bosses[2].name) #now this is what I call cutting corners
+        if bosses[2].enroom > 6 or bosses[2].enroom < 1 and multiroomboss == True:
+            bosses[2].enroom = 5
 
-    if speed == False or speedturn == 1:
-        for i in range(len(enemies)):
-            enemies[i].die()
-            if enemies[i].dead == False:
-                tempgo = enemies[i].keepgo
-                enemies[i].keepgo = enemies[i].enmv(tempgo)
-            else:
-                if enemies[i].drop != None and enemies[i].drop != 0:
-                    foremap[enemies[i].enx][enemies[i].eny] = enemies[i].drop
-                    backmap[enemies[i].enx][enemies[i].eny] = enemies[i].drop
-                screen.blit(foremap[enemies[i].enx][enemies[i].eny], (enemies[i].enx * 50, enemies[i].eny * 50))
-                screen.blit(wall, (0, 0)) #this and all the other wall blits at 0,0 are there because I got mad at the split second appearence of dead enemies in that spot
-                pygame.display.update() #and I don't know which one fixed it and I don't want to test it over and over
-                enemies[i].enx, enemies[i].eny = 0, 0
-                enemies[i].recycle()
-        for i in range(len(bosses)):
-            bosses[i].die()
-            checkstage()
-            #I've given up at this point    look at all those useless ands
-            if bosses[i].dead == False and bosses[i].name == "FINAL BOSS" and bosses[i].enroom != room and bosses[i].stage >= 2 and bosses[i].teleported == True:
-                bosses[i].loaded = False
-                bosses[i].teleported = False
-            if (bosses[i].loaded == True and bosses[i].dead == False) and ((bosses[i].name != "Skeleton" and bosses[i].name != "FINAL BOSS") or bosses[i].stage == 3):
-                tempgo = bosses[i].keepgo
-                bosses[i].keepgo = bosses[i].enmv(tempgo)
-            elif bosses[i].loaded == True and bosses[i].dead == False:
-                tempskelgo = skelgo
-                skelgo = bosses[i].forskellyonly(tempskelgo)
-            else:
-                if bosses[i].drop != None and bosses[i].drop != 0:
-                    foremap[bosses[i].enx][bosses[i].eny] = bosses[i].drop
-                    backmap[bosses[i].enx][bosses[i].eny] = bosses[i].drop
-                screen.blit(foremap[bosses[i].enx][bosses[i].eny], (bosses[i].enx * 50, bosses[i].eny * 50))
-                screen.blit(wall, (0, 0))
-                pygame.display.update()
-                bosses[i].enx, bosses[i].eny = 0, 0
-        speedcount += 1
-        speedturn = 0
-    elif speed == True:
-        speedturn += 1
+        if speed == False or speedturn == 1:
+            for i in range(len(enemies)):
+                enemies[i].die()
+                if enemies[i].dead == False:
+                    tempgo = enemies[i].keepgo
+                    enemies[i].keepgo = enemies[i].enmv(tempgo)
+                else:
+                    if enemies[i].drop != None and enemies[i].drop != 0:
+                        foremap[enemies[i].enx][enemies[i].eny] = enemies[i].drop
+                        backmap[enemies[i].enx][enemies[i].eny] = enemies[i].drop
+                    screen.blit(foremap[enemies[i].enx][enemies[i].eny], (enemies[i].enx * 50, enemies[i].eny * 50))
+                    screen.blit(wall, (0, 0)) #this and all the other wall blits at 0,0 are there because I got mad at the split second appearence of dead enemies in that spot
+                    pygame.display.update() #and I don't know which one fixed it and I don't want to test it over and over
+                    enemies[i].enx, enemies[i].eny = 0, 0
+                    enemies[i].recycle()
+            for i in range(len(bosses)):
+                bosses[i].die()
+                checkstage()
+                #I've given up at this point    look at all those useless ands
+                if bosses[i].dead == False and bosses[i].name == "FINAL BOSS" and bosses[i].enroom != room and bosses[i].stage >= 2 and bosses[i].teleported == True:
+                    bosses[i].loaded = False
+                    bosses[i].teleported = False
+                if (bosses[i].loaded == True and bosses[i].dead == False) and ((bosses[i].name != "Skeleton" and bosses[i].name != "FINAL BOSS") or bosses[i].stage == 3):
+                    tempgo = bosses[i].keepgo
+                    bosses[i].keepgo = bosses[i].enmv(tempgo)
+                elif bosses[i].loaded == True and bosses[i].dead == False:
+                    tempskelgo = skelgo
+                    skelgo = bosses[i].forskellyonly(tempskelgo)
+                else:
+                    if bosses[i].drop != None and bosses[i].drop != 0:
+                        foremap[bosses[i].enx][bosses[i].eny] = bosses[i].drop
+                        backmap[bosses[i].enx][bosses[i].eny] = bosses[i].drop
+                    screen.blit(foremap[bosses[i].enx][bosses[i].eny], (bosses[i].enx * 50, bosses[i].eny * 50))
+                    screen.blit(wall, (0, 0))
+                    pygame.display.update()
+                    bosses[i].enx, bosses[i].eny = 0, 0
+            speedcount += 1
+            speedturn = 0
+        elif speed == True:
+            speedturn += 1
 
-    foremap[plx][ply] = player #makes it so you don't go invisible on a tile a monster died on
-    foremap[0][0] = wall
+        foremap[plx][ply] = player #makes it so you don't go invisible on a tile a monster died on
+        foremap[0][0] = wall
 
-    screen.fill(pygame.Color("black"), (80, 500, 23, 15))
-    screen.fill(pygame.Color("black"), (150, 500, 100, 15))
-    screen.blit(log.render(str(plhp), True, pygame.Color("white")), (86, 500)) #the weird number is used just to keep the value in the same place
-    screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (150, 500))
+        screen.fill(pygame.Color("black"), (80, 500, 23, 15))
+        screen.fill(pygame.Color("black"), (150, 500, 100, 15))
+        screen.blit(log.render(str(plhp), True, pygame.Color("white")), (86, 500)) #the weird number is used just to keep the value in the same place
+        screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (150, 500))
 
-    if psn == True:
-        screen.blit(log.render("PSN", True, pygame.Color("purple")), (300, 500))
-        if psnstep % 4 == 0:
-            plhp -= 1
-        if psnstep >= 100:
-            psn = False
-        psnstep += 1
-    if para == True:
-        screen.blit(log.render("PARA", True, pygame.Color("red")), (350, 500))
-        paracount += 1
-        if paracount >= paramax:
-            para = False
-            paracount = 0
-    if nodam == True:
-        screen.blit(log.render("INV", True, pygame.Color("yellow")), (350, 520))
-        nodamcount += 1
-        if nodamcount == 5:
-            screen.fill(pygame.Color("black"), (349, 520, 40, 15))
-            nodam = False
-            nodamcount = 0
-    if speed == True:
-        screen.blit(log.render("SPD", True, pygame.Color("cyan")), (300, 520))
-    if speed == False:
-        screen.fill(pygame.Color("black"), (299, 520, 40, 15))
-    if psn == False:
-        screen.fill(pygame.Color("black"), (299, 500, 40, 15))
-    if para == False:
-        screen.fill(pygame.Color("black"), (349, 500, 40, 15))
+        if psn == True:
+            screen.blit(log.render("PSN", True, pygame.Color("purple")), (300, 500))
+            if psnstep % 10 == 0:
+                plhp -= 1
+            if psnstep >= 100:
+                psn = False
+            psnstep += 1
+        if para == True:
+            screen.blit(log.render("PARA", True, pygame.Color("red")), (350, 500))
+            paracount += 1
+            if paracount >= paramax:
+                para = False
+                paracount = 0
+        if nodam == True:
+            screen.blit(log.render("INV", True, pygame.Color("yellow")), (350, 520))
+            nodamcount += 1
+            if nodamcount == 5:
+                screen.fill(pygame.Color("black"), (349, 520, 40, 15))
+                nodam = False
+                nodamcount = 0
+        if speed == True:
+            screen.blit(log.render("SPD", True, pygame.Color("cyan")), (300, 520))
+        if speed == False:
+            screen.fill(pygame.Color("black"), (299, 520, 40, 15))
+        if psn == False:
+            screen.fill(pygame.Color("black"), (299, 500, 40, 15))
+        if para == False:
+            screen.fill(pygame.Color("black"), (349, 500, 40, 15))
 
-    if plhp <= 0:
-        updatelog('dead')
-        screen.fill(pygame.Color("black"), (0, 0, 500, 500))
-        screen.blit(big.render("GAME OVER", True, pygame.Color("red")), (125, 200))
+        if plhp <= 0:
+            updatelog('dead')
+            screen.fill(pygame.Color("black"), (0, 0, 500, 500))
+            screen.blit(big.render("GAME OVER", True, pygame.Color("red")), (125, 200))
+            pygame.display.update()
+            pygame.time.wait(1000)
+            event = pygame.event.wait()
+            sys.exit()
+
+        foremap[0][0] = wall
+        backmap[0][0] = wall
+        screen.blit(wall, (0, 0))
         pygame.display.update()
-        pygame.time.wait(1000)
-        event = pygame.event.wait()
-        sys.exit()
-
-    foremap[0][0] = wall
-    backmap[0][0] = wall
-    screen.blit(wall, (0, 0))
-    pygame.display.update()
-    loadedroom = False
+        loadedroom = False
 
     for i in range(10):
         for j in range(10):
