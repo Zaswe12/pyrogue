@@ -101,6 +101,7 @@ for i in range(2, 50):
 platt = 1
 armor = 10
 invmax = -1
+invmaxmax = 18
 itemrmflxy = [((0, 0), (0, 0))]
 haskey = [0, 0, 0, 0]
 
@@ -168,7 +169,7 @@ def updatelog(kind, thing = 0, value = 0):
     thing = str(thing)
     value = str(value)
 
-    screen.fill(pygame.Color("black"), (0, 515, 600, 85))
+    screen.fill(pygame.Color("black"), (0, 515, 300, 85))
     screen.blit(text[4], newlog.move(0, -60))
     screen.blit(text[3], newlog.move(0, -45))
     screen.blit(text[2], newlog.move(0, -30))
@@ -182,6 +183,8 @@ def updatelog(kind, thing = 0, value = 0):
         text[0] = log.render("You miss the " + thing, True, pygame.Color("white"))
     if kind == 'dam':
         text[0] = log.render("The " + thing + " hits you for " + value + " damage", True, pygame.Color("red"))
+    if kind == 'enmiss':
+        text[0] = log.render("The " + thing + " misses you", True, pygame.Color("white"))
     if kind == 'nodam':
         text[0] = log.render("The " + thing + " hits you but you don't take any damage", True, pygame.Color("white"))
     if kind == 'magi':
@@ -196,8 +199,12 @@ def updatelog(kind, thing = 0, value = 0):
         text[0] = log.render("The " + thing + " vanishes before your eyes", True, pygame.Color("white"))
     if kind == 'pick':
         text[0] = log.render("You pick up the " + thing, True, pygame.Color("white"))
+    if kind == 'drop':
+        text[0] = log.render("You dropped the " + thing, True, pygame.Color("white"))
     if kind == 'heal':
-        text[0] = log.render("You healed yourself for " + value + " damage", True, pygame.Color("yellow"))
+        text[0] = log.render("You healed yourself for " + thing + " damage", True, pygame.Color("yellow"))
+    if kind == 'ant':
+        text[0] = log.render("You recovered from the poison")
     if kind == 'level':
         text[0] = log.render("You are now level " + thing, True, pygame.Color("green"))
     if kind == 'stat':
@@ -252,10 +259,7 @@ def levelup(lvlxp):
         if choice == "HP":
             rnstat = random.randint(3, 6)
             updatelog('stat', "HP", rnstat)
-            maxhp += rnstat
-            
-            screen.fill(pygame.Color("black"), (115, 500, 23, 15))
-            screen.blit(log.render(str(maxhp), True, pygame.Color("white")), (115, 500))
+            maxhp += rnstat    
         if choice == "Attack":
             rnstat = random.randint(1, 3)
             updatelog('stat', "attack", rnstat)
@@ -265,8 +269,10 @@ def levelup(lvlxp):
             updatelog('stat', "defence", rnstat)
             armor += rnstat
 
+        screen.fill(pygame.Color("black"), (115, 500, 23, 15))
+        screen.blit(log.render(str(maxhp), True, pygame.Color("white")), (115, 500))
         plhp = maxhp
-        xp = 0
+        xp = xp - lvlxp
         return level + 1
     else:
         return level 
@@ -295,6 +301,7 @@ class Item():
             invmax -= 1
             self.pos = (plx, ply)
             self.rmfl = (room, floor)
+            updatelog('drop', self.name)
             if self.image == bag:
                 foremap[plx][ply] = bag
                 backmap[plx][ply] = bag
@@ -328,9 +335,11 @@ class Item():
                 armor -= self.value
         if self.kind == 'HEAL' and self.ininv == True:
             if self.value + plhp > maxhp:
+                updatelog('heal', maxhp - plhp)
                 plhp = maxhp
             else:
                 plhp += self.value
+                updatelog('heal', self.value)
             self.useitem()
             screen.fill(pygame.Color("black"), (80, 500, 23, 15))
             screen.blit(log.render(str(plhp), True, pygame.Color("white")), (85, 500))
@@ -340,6 +349,8 @@ class Item():
             if psn == True:
                 psn = False
                 self.useitem()
+                screen.fill(pygame.Color("black"), (299, 500, 40, 15))
+                updatelog('ant')
                 return True
         if self.kind == 'PARA' and self.ininv == True:
             global para
@@ -395,12 +406,13 @@ class Enemy():
     rmfl = (0, 0)
     currentloc = ((0, 0), (0, 0)) # room, floor, x, y
     diedin = [(0, 0, 0, 0)] # same as ^ but worse and I don't want to change it
-    def __init__(self, name, hp, att, armor, xp, image):
+    def __init__(self, name, hp, att, armor, damage, xp, image):
         self.name = name
         self.hp = hp
         self.temphp = hp
         self.att = att
         self.armor = armor
+        self.damage = damage
         self.xp = xp
         self.image = image
 
@@ -423,11 +435,20 @@ class Enemy():
             return False
 
     def enatt(self, hp, spec = 0):
-        global psn, para, paramax
+        global psn, para, paramax, armor
         if self.loaded == True and nodam == False:
-            rn = random.randint(0, 2)
-            rnstatus = random.randint(0, 100)
-            updatelog('dam', self.name, self.att + rn)
+
+            dam = 0
+            rn = random.randint(1, 20)
+            if rn + self.att >= armor:
+                dam = random.randint(1, self.damage)
+
+            if dam != 0:
+                updatelog('dam', self.name, dam)
+            elif dam == 0:
+                updatelog('enmiss', self.name)
+
+            rnstatus = random.randint(1, 100)
             if spec == "para":
                 para = True
                 paramax = 8
@@ -445,9 +466,9 @@ class Enemy():
                     para = True
                     paramax = 5
             if self.name == "FINAL BOSS" and self.stage == 3:
-                if random.randint(0, 100) <= 10:
+                if random.randint(1, 100) <= 10:
                     self.tele()
-            return hp - (self.att + rn)
+            return hp - dam
         elif self.loaded == True and nodam == True:
             updatelog('nodam', self.name)
             return hp
@@ -691,9 +712,9 @@ class Enemy():
         if random.randint(0, 100) <= 12:
             if floor < 5:
                 rn = random.randint(0, 100)
-                if rn <= 50:
-                    return getitem(self.enx, self.eny, 0, "Potion")
-                if rn > 50:
+                if rn <= 90:
+                    return getitem(self.enx, self.eny, 0, "Weak Potion")
+                if rn > 90:
                     return getitem(self.enx, self.eny, 0, "Antidote")
             """if floor >= 5 and floor < 10:
                 #stuff
@@ -738,67 +759,66 @@ class Enemy():
             self.currentloc = ((0, 0), (0, 0))
             
 #kill me now
-#Name, HP, Attack, Armor, XP, image
+#Name, HP, Attack, Armor, Damage, XP, image
 enemies = [
 #---Floors 1-5---#
-Enemy("Goblin", 5, 0, 5, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, goblin),
-Enemy("Rat", 3, 0, 3, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, rat),
-Enemy("Snake", 5, 1, 5, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, snake),
-Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 4, guinea),
+Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
+Enemy("Rat", 3, 0, 3, 2, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, 2, rat),
+Enemy("Rat", 3, 0, 3, 2, 2, rat),
+Enemy("Snake", 5, 1, 5, 3, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, 3, snake),
+Enemy("Snake", 5, 1, 5, 3, 3, snake),
+Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
 #---Floors 6-10---#
-Enemy("Megabat", 10, 4, 10, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 5, megabat),
-Enemy("Mammoth", 13, 2, 8, 10, mammoth)
+Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
+Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth)
 ]
-
 bosses = [
-Enemy("Troll", 15, 6, 6, 15, troll),
-Enemy("Skeleton", 75, 6, 5, 80, skeleton),
-Enemy("FINAL BOSS", 200, 10, 6, 250, finalboss)
+Enemy("Troll", 30, 6, 6, 6, 15, troll),
+Enemy("Skeleton", 75, 6, 5, 8, 80, skeleton),
+Enemy("FINAL BOSS", 200, 10, 6, 10, 250, finalboss)
 ]
 
 def getrandmon():
@@ -925,7 +945,7 @@ def getitem(x, y, kind, bagkind = 0):
     invpot = Item("Invincibility Potion", 'INV', 0, bag)
 
     if bagkind != 0: #for drops
-        if bagkind == "Potion":
+        if bagkind == "Weak Potion":
             tempitem = weakpot
         if bagkind == "Antidote":
             tempitem = ant
@@ -1077,7 +1097,7 @@ def pickup():
             keystatus()
             return
     for i in range(len(items)):
-        if items[i].pos == (plx, ply) and items[i].rmfl == (room, floor):
+        if items[i].pos == (plx, ply) and items[i].rmfl == (room, floor) and invmax + 1 <= invmaxmax:
             items[i].ininv = True
             if items[i].dropped == False:
                 rmflxy = (items[i].rmfl, items[i].pos)
@@ -1163,96 +1183,6 @@ def openinv(itemslist):
                         invitems[i].drop()
             if select.key == pygame.K_i:
                 return
-    """cursor = 0
-    colmax = 9
-    colcurs = 0
-    invmaxmax = colmax * 2
-    cursline = "_"
-    while True:
-        screen.fill(pygame.Color("black"), (0, 0, 500, 500))
-        temp = 0
-        col = 0
-        col2max = -1
-        colchange = False
-        done = False
-        sortitems(items)
-        for i in range(len(items)):
-            if i > colmax and colchange == False:
-                col = 1
-                temp = 0
-                colchange = True
-            if col == 0 and items[i].ininv == True:
-                items[i].col = 0
-            if col == 1 and items[i].ininv == True:
-                items[i].col = 1
-                col2max += 1
-            if items[i].ininv == True and items[i].damage == 0 and items[i].value != 0:
-                screen.blit(log.render(items[i].name + "    " + str(items[i].value), True, pygame.Color("white")), (50 + (250 * col), (temp * 50) + 50))
-                items[i].curs = temp
-                temp += 1
-            if items[i].ininv == True and items[i].damage == 0 and items[i].value == 0:
-                screen.blit(log.render(items[i].name, True, pygame.Color("white")), (50 + (250 * col), (temp * 50) + 50))
-                items[i].curs = temp
-                temp += 1
-            if items[i].ininv == True and items[i].damage != 0:
-                screen.blit(log.render(items[i].name + "    " + str(items[i].value) + "  " + str(items[i].damage), True, pygame.Color("white")), (50 + (250 * col), (temp * 50) + 50))
-                items[i].curs = temp
-                temp += 1
-            if items[i].equip == True:
-                screen.blit(log.render("*", True, pygame.Color("white")), (40, (items[i].curs * 50) + 50))
-            if items[i].equip == False:
-                screen.fill(pygame.Color("black"), (38, (items[i].curs * 50) + 48, 10, 10))
-
-            if cursor == items[i].curs:
-                cursline = "_" * len(items[i].name)
-
-        screen.blit(log.render(cursline, True, pygame.Color("white")), (50 + (250 * colcurs), (cursor * 50) + 60))
-        pygame.display.update()
-
-        select = pygame.event.wait()
-        screen.fill(pygame.Color("black"), (45, (cursor * 50) + 65, 90, 10))
-        if select.type == pygame.QUIT:
-            sys.exit()
-        elif select.type == pygame.KEYDOWN:
-            if select.key == pygame.K_UP and cursor - 1 >= 0 and cursor != 10:
-                cursor -= 1
-            if select.key == pygame.K_DOWN and cursor + 1 <= invmax and cursor != 8:
-                cursor += 1
-                if colcurs == 1 and cursor > col2max:
-                    cursor -= 1
-            if select.key == pygame.K_RIGHT and colcurs + 1 <= 1 and cursor <= col2max:
-                colcurs += 1
-            if select.key == pygame.K_LEFT and colcurs - 1 >= 0:
-                colcurs -= 1
-            if select.key == pygame.K_RETURN:
-                i = 0
-                trueornot = False
-                pdb.set_trace()
-                while not done:
-                    if items[i].curs == cursor and items[i].col == colcurs:
-                        if cursor - 1 != -1 and items[i].kind != "WEAP" and items[i].kind != "ARM":
-                            cursor -= 1
-                        trueornot = items[i].use()
-                        j = i
-                        for j in range(i, len(items)):
-                            if trueornot == True:
-                                items[j].listpos -= 1
-                        done = True
-                    i += 1
-                    if i >= len(items):
-                        done = True
-            if select.key == pygame.K_d:
-                for i in range(len(items)):
-                    if items[i].curs == cursor:
-                        items[i].drop()
-                        sortitems(items)
-            if select.key == pygame.K_i:
-                return
-        for i in range(len(items)):
-            if cursor == items[i].curs:
-                cursline = "_" * len(items[i].name)
-        screen.blit(log.render(cursline, True, pygame.Color("white")), (50 + (250 * col), (cursor * 50) + 60))
-        pygame.display.update()"""
 
 def attack(enemy, weapon):
     rn = random.randint(1, 20) #d20
@@ -1341,7 +1271,7 @@ def loadmap(direct):
 
             for k in range(len(items)): #for items that were dropped
                 if (i, j) == items[k].pos and (room, floor) == items[k].rmfl:
-                    foremap[i][j] = bag
+                    foremap[i][j] = items[k].image
                     backmap[i][j] = foremap[i][j]
 
             if backmap[i][j] == '#':
@@ -1378,7 +1308,14 @@ def loadmap(direct):
                         foremap[i][j] = ground
                 backmap[i][j] = ground
             if backmap[i][j] == 'T':
-                foremap[i][j] = getitem(i, j, 'T')
+                tracker = 0
+                for k in range(len(itemrmflxy)):
+                    if ((room, floor), (i, j)) == itemrmflxy[k]:
+                        tracker += 1
+                if tracker == 0:
+                    foremap[i][j] = getitem(i, j, 'T')
+                else:
+                    foremap[i][j] = ground
                 backmap[i][j] = foremap[i][j]
             if backmap[i][j] == 'B':
                 tracker = 0
@@ -1400,6 +1337,9 @@ def loadmap(direct):
                 downstrpos = (i, j)
     if (room, floor) == (1, 10):
         downstrpos = (2, 4)
+
+    screen.fill(pygame.Color("black"), (450, 585, 50, 15))
+    screen.blit(log.render("FL: " + str(floor), True, pygame.Color("white")), (450, 585))
 
 #it's terrible, I know
 def move(x):
@@ -1467,7 +1407,7 @@ def move(x):
                 bosses[i].hp = attack(bosses[i], weapon)
                 attacked = True
 
-        #I only put this in the left and up, sue me
+        #I only put this in the LEFT and UP, sue me
         for i in range(len(haskey)):
             if foremap[plx][ply - 1] == door and haskey[i] == floor:
                 foremap[plx][ply - 1] = backmap[plx][ply - 1]
@@ -1525,7 +1465,6 @@ while True:
             move('RIGHT')
         if event.key == pygame.K_COMMA and pygame.key.get_mods() & pygame.KMOD_SHIFT:
             move('STAIR_UP')
-            floor = 9
         if event.key == pygame.K_PERIOD and pygame.key.get_mods() & pygame.KMOD_SHIFT:
             move('STAIR_DOWN')
         if event.key == pygame.K_i:
