@@ -102,7 +102,7 @@ for i in range(2, 50):
 platt = 1
 armor = 10
 invmax = -1
-invmaxmax = 18
+invmaxmax = 19
 itemrmflxy = [((0, 0), (0, 0))]
 haskey = [0, 0, 0, 0]
 
@@ -376,7 +376,7 @@ class Item():
         self.weaptype = weaptype
 
     def drop(self):
-        global invmax, foremap, items
+        global invmax, foremap, items, backmap
         if self.ininv == True:
             self.ininv = False
             self.dropped = True
@@ -847,6 +847,7 @@ class Enemy():
             return
         self.dead = False
         self.hp = self.temphp
+        self.xpused = False
         if stair == True:
             self.loaded = False
             self.rmfl = (0, 0)
@@ -858,108 +859,108 @@ class Enemy():
 #Name, HP, Attack, Armor, Damage, XP, image
 enemies = [
 #---Floors 1-5---#
-Enemy("Goblin", 5, 0, 5, 3, 3, goblin), #0
-Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
-Enemy("Rat", 3, 0, 3, 2, 2, rat),   #10
-Enemy("Rat", 3, 0, 3, 2, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, 2, rat),
-Enemy("Snake", 5, 1, 5, 3, 3, snake),   #20
-Enemy("Snake", 5, 1, 5, 3, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, 3, snake),
-Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea), #30
-Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
+Enemy("Goblin", 5, 1, 5, 3, 3, goblin), #0
+Enemy("Goblin", 5, 1, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 1, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 1, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 1, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 1, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 1, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 1, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 1, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 1, 5, 3, 3, goblin),
+Enemy("Rat", 3, 1, 3, 2, 2, rat),   #10
+Enemy("Rat", 3, 1, 3, 2, 2, rat),
+Enemy("Rat", 3, 1, 3, 2, 2, rat),
+Enemy("Rat", 3, 1, 3, 2, 2, rat),
+Enemy("Rat", 3, 1, 3, 2, 2, rat),
+Enemy("Rat", 3, 1, 3, 2, 2, rat),
+Enemy("Rat", 3, 1, 3, 2, 2, rat),
+Enemy("Rat", 3, 1, 3, 2, 2, rat),
+Enemy("Rat", 3, 1, 3, 2, 2, rat),
+Enemy("Rat", 3, 1, 3, 2, 2, rat),
+Enemy("Snake", 5, 2, 5, 3, 3, snake),   #20
+Enemy("Snake", 5, 2, 5, 3, 3, snake),
+Enemy("Snake", 5, 2, 5, 3, 3, snake),
+Enemy("Snake", 5, 2, 5, 3, 3, snake),
+Enemy("Snake", 5, 2, 5, 3, 3, snake),
+Enemy("Snake", 5, 2, 5, 3, 3, snake),
+Enemy("Snake", 5, 2, 5, 3, 3, snake),
+Enemy("Snake", 5, 2, 5, 3, 3, snake),
+Enemy("Snake", 5, 2, 5, 3, 3, snake),
+Enemy("Snake", 5, 2, 5, 3, 3, snake),
+Enemy("Guinea Pig", 3, 4, 7, 3, 4, guinea), #30
+Enemy("Guinea Pig", 3, 4, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 4, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 4, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 4, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 4, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 4, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 4, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 4, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 4, 7, 3, 4, guinea),
 #---Floors 6-10---#
-Enemy("Megabat", 10, 4, 10, 4, 5, megabat), #40
-Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
-Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth), #50
-Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
-Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
-Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
-Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
-Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
-Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
-Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
-Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
-Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
-Enemy("Monster", 10, 3, 7, 5, 6, monster),  #60
-Enemy("Monster", 10, 3, 7, 5, 6, monster),
-Enemy("Monster", 10, 3, 7, 5, 6, monster),
-Enemy("Monster", 10, 3, 7, 5, 6, monster),
-Enemy("Monster", 10, 3, 7, 5, 6, monster),
-Enemy("Monster", 10, 3, 7, 5, 6, monster),
-Enemy("Monster", 10, 3, 7, 5, 6, monster),
-Enemy("Monster", 10, 3, 7, 5, 6, monster),
-Enemy("Monster", 10, 3, 7, 5, 6, monster),
-Enemy("Monster", 10, 3, 7, 5, 6, monster),
-Enemy("Troll", 15, 6, 8, 8, 10, troll), #70
-Enemy("Troll", 15, 6, 8, 8, 10, troll),
-Enemy("Troll", 15, 6, 8, 8, 10, troll),
-Enemy("Troll", 15, 6, 8, 8, 10, troll),
-Enemy("Troll", 15, 6, 8, 8, 10, troll),
-Enemy("Troll", 15, 6, 8, 8, 10, troll),
-Enemy("Troll", 15, 6, 8, 8, 10, troll),
-Enemy("Troll", 15, 6, 8, 8, 10, troll),
-Enemy("Troll", 15, 6, 8, 8, 10, troll),
-Enemy("Troll", 15, 6, 8, 8, 10, troll),
+Enemy("Megabat", 10, 6, 10, 4, 5, megabat), #40
+Enemy("Megabat", 10, 6, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 6, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 6, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 6, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 6, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 6, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 6, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 6, 10, 4, 5, megabat),
+Enemy("Megabat", 10, 6, 10, 4, 5, megabat),
+Enemy("Mammoth", 13, 4, 8, 7, 10, mammoth), #50
+Enemy("Mammoth", 13, 4, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 4, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 4, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 4, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 4, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 4, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 4, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 4, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 4, 8, 7, 10, mammoth),
+Enemy("Monster", 10, 5, 7, 5, 6, monster),  #60
+Enemy("Monster", 10, 5, 7, 5, 6, monster),
+Enemy("Monster", 10, 5, 7, 5, 6, monster),
+Enemy("Monster", 10, 5, 7, 5, 6, monster),
+Enemy("Monster", 10, 5, 7, 5, 6, monster),
+Enemy("Monster", 10, 5, 7, 5, 6, monster),
+Enemy("Monster", 10, 5, 7, 5, 6, monster),
+Enemy("Monster", 10, 5, 7, 5, 6, monster),
+Enemy("Monster", 10, 5, 7, 5, 6, monster),
+Enemy("Monster", 10, 5, 7, 5, 6, monster),
+Enemy("Troll", 15, 6, 10, 8, 10, troll), #70
+Enemy("Troll", 15, 6, 10, 8, 10, troll),
+Enemy("Troll", 15, 6, 10, 8, 10, troll),
+Enemy("Troll", 15, 6, 10, 8, 10, troll),
+Enemy("Troll", 15, 6, 10, 8, 10, troll),
+Enemy("Troll", 15, 6, 10, 8, 10, troll),
+Enemy("Troll", 15, 6, 10, 8, 10, troll),
+Enemy("Troll", 15, 6, 10, 8, 10, troll),
+Enemy("Troll", 15, 6, 10, 8, 10, troll),
+Enemy("Troll", 15, 6, 10, 8, 10, troll),
 #---Floors 11-15---#    I can't believe how I actually went through with this crap
-Enemy("Knight", 13, 10, 12, 6, 10, knight), #80
-Enemy("Knight", 13, 10, 12, 6, 10, knight),
-Enemy("Knight", 13, 10, 12, 6, 10, knight),
-Enemy("Knight", 13, 10, 12, 6, 10, knight),
-Enemy("Knight", 13, 10, 12, 6, 10, knight),
-Enemy("Knight", 13, 10, 12, 6, 10, knight),
-Enemy("Knight", 13, 10, 12, 6, 10, knight),
-Enemy("Knight", 13, 10, 12, 6, 10, knight),
-Enemy("Knight", 13, 10, 12, 6, 10, knight),
-Enemy("Knight", 13, 10, 12, 6, 10, knight),
-Enemy("Ghost", 8, 9, 15, 5, 8, ghost),  #90
-Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
-Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
-Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
-Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
-Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
-Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
-Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
-Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
-Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
+Enemy("Knight", 13, 13, 12, 6, 10, knight), #80
+Enemy("Knight", 13, 13, 12, 6, 10, knight),
+Enemy("Knight", 13, 13, 12, 6, 10, knight),
+Enemy("Knight", 13, 13, 12, 6, 10, knight),
+Enemy("Knight", 13, 13, 12, 6, 10, knight),
+Enemy("Knight", 13, 13, 12, 6, 10, knight),
+Enemy("Knight", 13, 13, 12, 6, 10, knight),
+Enemy("Knight", 13, 13, 12, 6, 10, knight),
+Enemy("Knight", 13, 13, 12, 6, 10, knight),
+Enemy("Knight", 13, 13, 12, 6, 10, knight),
+Enemy("Ghost", 8, 12, 15, 5, 8, ghost),  #90
+Enemy("Ghost", 8, 12, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 12, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 12, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 12, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 12, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 12, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 12, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 12, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 12, 15, 5, 8, ghost),
 Enemy("Skeleton", 15, 10, 10, 8, 10, skeleton), #100
 Enemy("Skeleton", 15, 10, 10, 8, 10, skeleton),
 Enemy("Skeleton", 15, 10, 10, 8, 10, skeleton),
@@ -1532,6 +1533,7 @@ def loadmap(direct):
                         foremap[i][j] = door
                     else:
                         foremap[i][j] = ground
+                        break
                 backmap[i][j] = ground
             if backmap[i][j] == 'T':
                 tracker = 0
@@ -1569,10 +1571,9 @@ def loadmap(direct):
 
 #it's terrible, I know
 def move(x):
-    global foremap, plx, ply, haskey, dooropen, paracount
+    global foremap, plx, ply, haskey, dooropen
 
     if para == True:
-        paracount += 1
         return
 
     load = False #needed because I can't put elifs here
