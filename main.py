@@ -11,7 +11,7 @@ pygame.event.set_allowed(None)
 pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN])
 pygame.font.init()
 
-log = pygame.font.SysFont("monospace", 15)
+log = pygame.font.SysFont("monospace", 14)
 big = pygame.font.SysFont("monospace", 50)
 text = [log.render("", True, pygame.Color("black")) for i in range(5)] #for the updatelog function
 
@@ -67,9 +67,10 @@ mammoth = pygame.image.load('graphics/mammoth.png').convert()
 monster = pygame.image.load('graphics/monster.png').convert()
 knight = pygame.image.load('graphics/knight.png').convert()
 ghost = pygame.image.load('graphics/ghost.png').convert()
+littleeagle = pygame.image.load('graphics/littleeagle.png').convert()
 troll = pygame.image.load('graphics/troll.png').convert()
 skeleton = pygame.image.load('graphics/skeleton.png').convert()
-finalboss = pygame.image.load('graphics/finalboss.png').convert()
+bigeagle = pygame.image.load('graphics/bigeagle.png').convert()
 treasure = pygame.image.load('graphics/treasure.png').convert()
 bag = pygame.image.load('graphics/bag.png').convert()
 key = pygame.image.load('graphics/key.png').convert()
@@ -129,7 +130,9 @@ screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygam
 skelgo = 'UP'
 multiroomboss = False
 loadedroom = False
+telecount = 0
 finalset = False
+littlespawn = True
 
 #spilts the 1D array into 2D
 for i in range(10):
@@ -159,7 +162,7 @@ for i in range(10):
         screen.blit(foremap[i][j], (j * 50, i * 50))
 pygame.display.update()
 
-def updatelog(kind, thing = 0, value = 0):
+def updatelog(kind, thing = 0, value = 0):  #55 characters is the max string length
     global text
     text[4] = text[3]
     text[3] = text[2]
@@ -169,7 +172,7 @@ def updatelog(kind, thing = 0, value = 0):
     thing = str(thing)
     value = str(value)
 
-    screen.fill(pygame.Color("black"), (0, 515, 300, 85))
+    screen.fill(pygame.Color("black"), (0, 515, 450, 85))
     screen.blit(text[4], newlog.move(0, -60))
     screen.blit(text[3], newlog.move(0, -45))
     screen.blit(text[2], newlog.move(0, -30))
@@ -197,6 +200,8 @@ def updatelog(kind, thing = 0, value = 0):
         text[0] = log.render("The " + thing + " appears out of thin air", True, pygame.Color("white"))
     if kind == "teleout":
         text[0] = log.render("The " + thing + " vanishes before your eyes", True, pygame.Color("white"))
+    if kind == 'sur':
+        text[0] = log.render("You are surrounded!", True, pygame.Color("white"))
     if kind == 'pick':
         text[0] = log.render("You pick up the " + thing, True, pygame.Color("white"))
     if kind == 'drop':
@@ -204,13 +209,89 @@ def updatelog(kind, thing = 0, value = 0):
     if kind == 'heal':
         text[0] = log.render("You healed yourself for " + thing + " damage", True, pygame.Color("yellow"))
     if kind == 'ant':
-        text[0] = log.render("You recovered from the poison")
+        text[0] = log.render("You recovered from the poison", True, pygame.Color("purple"))
     if kind == 'level':
         text[0] = log.render("You are now level " + thing, True, pygame.Color("green"))
     if kind == 'stat':
         text[0] = log.render("Your " + thing + " stat went up by " + value, True, pygame.Color("green"))
     if kind == 'dead':
         text[0] = log.render("You died", True, pygame.Color("red"))
+    if kind == 'kill':
+        if value == 'sword':
+            if thing == "Goblin":
+                text[0] = log.render("You slash the Goblin's head off", True, pygame.Color("blue"))
+            if thing == "Rat":
+                text[0] = log.render("You slice off the Rat's tail", True, pygame.Color("blue"))
+            if thing == "Snake":
+                text[0] = log.render("You slice the Snake into bits", True, pygame.Color("blue"))
+            if thing == "Guinea Pig":
+                text[0] = log.render("You cut off it's back-left leg", True, pygame.Color("blue"))
+            if thing == "Megabat":
+                text[0] = log.render("You cut off the Bat's wings", True, pygame.Color("blue"))
+            if thing == "Mammoth":
+                text[0] = log.render("You  slice off it's trunk", True, pygame.Color("blue"))
+            if thing == "Monster":
+                text[0] = log.render("You impale it's smug face", True, pygame.Color("blue"))
+            if thing == "Troll":
+                text[0] = log.render("You You cut off the Troll's club arm", True, pygame.Color("blue"))
+            if thing == "Knight":
+                text[0] = log.render("You slash at the gaps of it's armor", True, pygame.Color("blue"))
+            if thing == "Ghost":
+                text[0] = log.render("You slice up the ectoplasma", True, pygame.Color("blue"))
+            if thing == "Skeleton":
+                text[0] = log.render("You sever the bone connections", True, pygame.Color("blue"))
+            if thing == "Little-Eagle":
+                text[0] = log.render("You slice the feathers off it's head", True, pygame.Color("blue"))
+        if value == 'dagger':
+            if thing == "Goblin":
+                text[0] = log.render("You shank the Goblin", True, pygame.Color("blue"))
+            if thing == "Rat":
+                text[0] = log.render("You turn the Rat into a raw shish kabob", True, pygame.Color("blue"))
+            if thing == "Snake":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Guinea Pig":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Megabat":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Mammoth":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Monster":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Troll":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Knight":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Ghost":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Skeleton":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Little-Eagle":
+                text[0] = log.render("", True, pygame.Color("blue"))
+        if value == 'axe':
+            if thing == "Goblin":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Rat":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Snake":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Guinea Pig":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Megabat":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Mammoth":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Monster":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Troll":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Knight":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Ghost":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Skeleton":
+                text[0] = log.render("", True, pygame.Color("blue"))
+            if thing == "Little-Eagle":
+                text[0] = log.render("", True, pygame.Color("blue"))
     
     screen.blit(text[0], newlog)
 
@@ -269,8 +350,8 @@ def levelup(lvlxp):
             updatelog('stat', "defence", rnstat)
             armor += rnstat
 
-        screen.fill(pygame.Color("black"), (115, 500, 23, 15))
-        screen.blit(log.render(str(maxhp), True, pygame.Color("white")), (115, 500))
+        screen.fill(pygame.Color("black"), (105, 500, 23, 15))
+        screen.blit(log.render(str(maxhp), True, pygame.Color("white")), (105, 500))
         plhp = maxhp
         xp = xp - lvlxp
         return level + 1
@@ -286,12 +367,13 @@ class Item():
     equip = False
     ininv = False
     dropped = False
-    def __init__(self, name, kind, value, image, damage = 0): #damage is for weapons
+    def __init__(self, name, kind, value, image, damage = 0, weaptype = 0): #damage is for weapons
         self.name = name
         self.kind = kind
         self.value = value
         self.image = image
         self.damage = damage
+        self.weaptype = weaptype
 
     def drop(self):
         global invmax, foremap, items
@@ -341,8 +423,8 @@ class Item():
                 plhp += self.value
                 updatelog('heal', self.value)
             self.useitem()
-            screen.fill(pygame.Color("black"), (80, 500, 23, 15))
-            screen.blit(log.render(str(plhp), True, pygame.Color("white")), (85, 500))
+            screen.fill(pygame.Color("black"), (75, 500, 23, 15))
+            screen.blit(log.render(str(plhp), True, pygame.Color("white")), (82, 500))
             return True
         if self.kind == 'PSN' and self.ininv == True:
             global psn
@@ -400,6 +482,9 @@ class Enemy():
     dead = False
     boss = False
     teleported = False
+    xpused = False
+    ghostinv = False
+    invcount = 0
     keepgo = 'UP'
     stage = 0
     enroom = 0
@@ -451,7 +536,7 @@ class Enemy():
             rnstatus = random.randint(1, 100)
             if spec == "para":
                 para = True
-                paramax = 8
+                paramax = random.randint(1, 8)
             if self.name == "Rat":
                 if rnstatus <= 10:
                     psn = True
@@ -461,11 +546,18 @@ class Enemy():
                 if rnstatus > 10 and rnstatus <= 20:
                     para = True
                     paramax = 3
+            if self.name == "Megabat":
+                if rnstatus <= 20:
+                    psn = True
+            if self.name == "Monster":
+                if rnstatus <= 20:
+                    para = True
+                    paramax = 4
             if self.name == "Skeleton":
                 if rnstatus <= 20:
                     para = True
                     paramax = 5
-            if self.name == "FINAL BOSS" and self.stage == 3:
+            if self.name == "Big-Eagle" and self.stage == 3:
                 if random.randint(1, 100) <= 10:
                     self.tele()
             return hp - dam
@@ -622,26 +714,26 @@ class Enemy():
         enpos = (self.enx, self.eny)
         rn = random.randint(0, 10)
         if (self.enx - 1 == plx or self.enx + 1 == plx) and self.eny == ply:
-            if self.name == "FINAL BOSS" and self.stage == 2:
+            if self.name == "Big-Eagle" and self.stage == 2:
                 rn = random.randint(1, 10)
                 if rn <= 3:
                     self.tele()
                     return 'UP'
             if rn <= 3:
                 if self.enx + 1 <= 9 and self.enx - 1 == plx and foremap[self.enx + 1][self.eny] == ground:
-                    if self.name == "FINAL BOSS":
+                    if self.name == "Big-Eagle":
                         plhp = self.enatt(plhp, "para")
                     foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                     self.enx += 1
                     direct = 'DOWN'
                 elif self.enx - 1 >= 0 and self.enx + 1 == plx and foremap[self.enx - 1][self.eny] == ground:
-                    if self.name == "FINAL BOSS":
+                    if self.name == "Big-Eagle":
                         plhp = self.enatt(plhp, "para")
                     foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                     self.enx -= 1
                     direct = 'UP'
                 else:
-                    if self.name == "FINAL BOSS":
+                    if self.name == "Big-Eagle":
                         plhp = self.enatt(plhp, "para")
                     foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                     direct = self.skellycheck(False)
@@ -652,26 +744,26 @@ class Enemy():
                     moved = False
                 return direct
         if self.enx == plx and (self.eny + 1 == ply or self.eny - 1 == ply):
-            if self.name == "FINAL BOSS" and self.stage == 2:
+            if self.name == "Big-Eagle" and self.stage == 2:
                 rn = random.randint(1, 10)
                 if rn <= 3:
                     self.tele()
                     return 'UP'
             if rn <= 3:
                 if self.eny + 1 <= 9 and self.eny - 1 == ply and foremap[self.enx][self.eny + 1] == ground:
-                    if self.name == "FINAL BOSS":
+                    if self.name == "Big-Eagle":
                         plhp = self.enatt(plhp, "para")
                     foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                     self.eny += 1
                     direct = 'RIGHT'
                 elif self.eny - 1 >= 0 and self.eny + 1 == ply and foremap[self.enx][self.eny - 1] == ground:
-                    if self.name == "FINAL BOSS":
+                    if self.name == "Big-Eagle":
                         plhp = self.enatt(plhp, "para")
                     foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                     self.eny -= 1
                     direct = 'LEFT'
                 else:
-                    if self.name == "FINAL BOSS":
+                    if self.name == "Big-Eagle":
                         plhp = self.enatt(plhp, "para")
                     foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
                     direct = self.skellycheck(True)
@@ -683,7 +775,7 @@ class Enemy():
             return direct
         else:
             #checks each direction to see if they are more than 2 spaces away from the player
-            if moved == False and self.enx - plx >= 2 or self.enx - plx <= -2 or self.eny - ply >= 2 or self.eny - ply <= -2:
+            if moved == False and self.enx - plx >= 2 or self.enx - plx <= -2 or self.eny - ply >= 2 or self.eny - ply <= -2 and self.name != "Ghost":
                 if self.los() == True and random.randint(0, 10) <= 3:
                     plhp = self.forskellymagic(plhp)
                     moved = True
@@ -727,7 +819,9 @@ class Enemy():
         if self.hp <= 0:
             self.dead = True
             loaded = False
-            xp += self.xp
+            if self.xpused == False:
+                xp += self.xp
+                self.xpused = True
             if backmap[self.enx][self.eny] == ground:
                 self.drop = self.dropitem()
             if self.drop == 0 or self.drop == None:
@@ -749,6 +843,8 @@ class Enemy():
                     backmap[2][4] = downstair
 
     def recycle(self, stair = False):
+        if self.name == "Little-Eagle" and littlespawn == False:
+            return
         self.dead = False
         self.hp = self.temphp
         if stair == True:
@@ -762,6 +858,7 @@ class Enemy():
 #Name, HP, Attack, Armor, Damage, XP, image
 enemies = [
 #---Floors 1-5---#
+Enemy("Goblin", 5, 0, 5, 3, 3, goblin), #0
 Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
 Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
 Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
@@ -771,7 +868,7 @@ Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
 Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
 Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
 Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
-Enemy("Goblin", 5, 0, 5, 3, 3, goblin),
+Enemy("Rat", 3, 0, 3, 2, 2, rat),   #10
 Enemy("Rat", 3, 0, 3, 2, 2, rat),
 Enemy("Rat", 3, 0, 3, 2, 2, rat),
 Enemy("Rat", 3, 0, 3, 2, 2, rat),
@@ -781,7 +878,7 @@ Enemy("Rat", 3, 0, 3, 2, 2, rat),
 Enemy("Rat", 3, 0, 3, 2, 2, rat),
 Enemy("Rat", 3, 0, 3, 2, 2, rat),
 Enemy("Rat", 3, 0, 3, 2, 2, rat),
-Enemy("Rat", 3, 0, 3, 2, 2, rat),
+Enemy("Snake", 5, 1, 5, 3, 3, snake),   #20
 Enemy("Snake", 5, 1, 5, 3, 3, snake),
 Enemy("Snake", 5, 1, 5, 3, 3, snake),
 Enemy("Snake", 5, 1, 5, 3, 3, snake),
@@ -791,8 +888,7 @@ Enemy("Snake", 5, 1, 5, 3, 3, snake),
 Enemy("Snake", 5, 1, 5, 3, 3, snake),
 Enemy("Snake", 5, 1, 5, 3, 3, snake),
 Enemy("Snake", 5, 1, 5, 3, 3, snake),
-Enemy("Snake", 5, 1, 5, 3, 3, snake),
-Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
+Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea), #30
 Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
 Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
 Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
@@ -803,6 +899,7 @@ Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
 Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
 Enemy("Guinea Pig", 3, 3, 7, 3, 4, guinea),
 #---Floors 6-10---#
+Enemy("Megabat", 10, 4, 10, 4, 5, megabat), #40
 Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
 Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
 Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
@@ -812,38 +909,150 @@ Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
 Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
 Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
 Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
-Enemy("Megabat", 10, 4, 10, 4, 5, megabat),
-Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth)
+Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth), #50
+Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
+Enemy("Mammoth", 13, 2, 8, 7, 10, mammoth),
+Enemy("Monster", 10, 3, 7, 5, 6, monster),  #60
+Enemy("Monster", 10, 3, 7, 5, 6, monster),
+Enemy("Monster", 10, 3, 7, 5, 6, monster),
+Enemy("Monster", 10, 3, 7, 5, 6, monster),
+Enemy("Monster", 10, 3, 7, 5, 6, monster),
+Enemy("Monster", 10, 3, 7, 5, 6, monster),
+Enemy("Monster", 10, 3, 7, 5, 6, monster),
+Enemy("Monster", 10, 3, 7, 5, 6, monster),
+Enemy("Monster", 10, 3, 7, 5, 6, monster),
+Enemy("Monster", 10, 3, 7, 5, 6, monster),
+Enemy("Troll", 15, 6, 8, 8, 10, troll), #70
+Enemy("Troll", 15, 6, 8, 8, 10, troll),
+Enemy("Troll", 15, 6, 8, 8, 10, troll),
+Enemy("Troll", 15, 6, 8, 8, 10, troll),
+Enemy("Troll", 15, 6, 8, 8, 10, troll),
+Enemy("Troll", 15, 6, 8, 8, 10, troll),
+Enemy("Troll", 15, 6, 8, 8, 10, troll),
+Enemy("Troll", 15, 6, 8, 8, 10, troll),
+Enemy("Troll", 15, 6, 8, 8, 10, troll),
+Enemy("Troll", 15, 6, 8, 8, 10, troll),
+#---Floors 11-15---#    I can't believe how I actually went through with this crap
+Enemy("Knight", 13, 10, 12, 6, 10, knight), #80
+Enemy("Knight", 13, 10, 12, 6, 10, knight),
+Enemy("Knight", 13, 10, 12, 6, 10, knight),
+Enemy("Knight", 13, 10, 12, 6, 10, knight),
+Enemy("Knight", 13, 10, 12, 6, 10, knight),
+Enemy("Knight", 13, 10, 12, 6, 10, knight),
+Enemy("Knight", 13, 10, 12, 6, 10, knight),
+Enemy("Knight", 13, 10, 12, 6, 10, knight),
+Enemy("Knight", 13, 10, 12, 6, 10, knight),
+Enemy("Knight", 13, 10, 12, 6, 10, knight),
+Enemy("Ghost", 8, 9, 15, 5, 8, ghost),  #90
+Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
+Enemy("Ghost", 8, 9, 15, 5, 8, ghost),
+Enemy("Skeleton", 15, 10, 10, 8, 10, skeleton), #100
+Enemy("Skeleton", 15, 10, 10, 8, 10, skeleton),
+Enemy("Skeleton", 15, 10, 10, 8, 10, skeleton),
+Enemy("Skeleton", 15, 10, 10, 8, 10, skeleton),
+Enemy("Skeleton", 15, 10, 10, 8, 10, skeleton),
+Enemy("Skeleton", 15, 10, 10, 8, 10, skeleton),
+Enemy("Skeleton", 15, 10, 10, 8, 10, skeleton),
+Enemy("Skeleton", 15, 10, 10, 8, 10, skeleton),
+Enemy("Skeleton", 15, 10, 10, 8, 10, skeleton),
+Enemy("Skeleton", 15, 10, 10, 8, 10, skeleton),
+Enemy("Little-Eagle", 15, 12, 12, 4, 6, littleeagle),   #110
+Enemy("Little-Eagle", 15, 12, 12, 4, 6, littleeagle),
+Enemy("Little-Eagle", 15, 12, 12, 4, 6, littleeagle),
+Enemy("Little-Eagle", 15, 12, 12, 4, 6, littleeagle),
+Enemy("Little-Eagle", 15, 12, 12, 4, 6, littleeagle),
+Enemy("Little-Eagle", 15, 12, 12, 4, 6, littleeagle),
+Enemy("Little-Eagle", 15, 12, 12, 4, 6, littleeagle),
+Enemy("Little-Eagle", 15, 12, 12, 4, 6, littleeagle),
+Enemy("Little-Eagle", 15, 12, 12, 4, 6, littleeagle),
+Enemy("Little-Eagle", 15, 12, 12, 4, 6, littleeagle)
 ]
+
 bosses = [
 Enemy("Troll", 30, 6, 6, 6, 15, troll),
 Enemy("Skeleton", 75, 6, 5, 8, 80, skeleton),
-Enemy("FINAL BOSS", 200, 10, 6, 10, 250, finalboss)
+Enemy("Big-Eagle", 200, 10, 6, 10, 250, bigeagle)
 ]
 
 def getrandmon():
     rn = random.randint(1, 100)
-    if floor < 3:
-        if rn <= 50:
-            return 0
-        if rn > 50:
-            return 10
-    if floor >= 3 and floor < 5:
+    if floor <= 5:
         if rn <= 25:
-            return 10
+            return 0
         if rn > 25 and rn <= 50:
-            return 30
-        if rn > 50:
-            return 0
-    if floor >= 5:
-        if rn <= 30:
-            return 0
-        if rn > 30 and rn <= 60:
-            return 30
-        if rn > 60 and rn <= 90:
-            return 20
-        if rn > 90:
             return 10
+        if floor == 3:
+            if rn > 50 and rn <= 75:
+                return 30
+            if rn > 75 and rn <= 88:
+                return 0
+            if rn > 88:
+                return 10
+        if floor > 3 and floor <= 5:
+            if rn > 50 and rn <= 75:
+                return 20
+            if rn > 75:
+                return 30
+        if rn > 50 and rn <= 75:
+            return 0
+        if rn > 75:
+            return 10
+    if floor > 5 and floor <= 10:
+        if rn <= 25:
+            return 40
+        if rn > 25 and rn <= 50:
+            return 50
+        if floor == 8:
+            if rn > 50 and rn <= 75:
+                return 60
+            if rn > 75 and rn <= 88:
+                return 40
+            if rn > 88:
+                return 50
+        if floor > 8 and floor <= 10:
+            if rn > 50 and rn <= 75:
+                return 60
+            if rn > 75:
+                return 70
+        if rn > 50 and rn <= 75:
+            return 40
+        if rn > 75:
+            return 50 
+    if floor > 10:
+        if rn <= 25:
+            return 80
+        if rn > 25 and rn <= 50:
+            return 90
+        if floor == 13:
+            if rn > 50 and rn <= 75:
+                return 100
+            if rn > 75 and rn <= 88:
+                return 80
+            if rn > 88:
+                return 90
+        if floor > 13:
+            if rn > 50 and rn <= 75:
+                return 100
+            if rn > 75:
+                return 110
+        if rn > 50 and rn <= 75:
+            return 80
+        if rn > 75:
+            return 90
 
 def getmon(x, y):
     
@@ -918,19 +1127,19 @@ def checkstage():
 
 def getitem(x, y, kind, bagkind = 0):
 
-    swordlow = Item("Iron Sword", 'WEAP', 2, treasure, 6)
-    swordmed = Item("Steel Sword", 'WEAP', 4, treasure, 8)
-    swordhigh = Item("Platinum Sword", 'WEAP', 6, treasure, 10)
-    daggerlow = Item("Iron Dagger", 'WEAP', 4, treasure, 4)
-    daggermed = Item("Steel Dagger", 'WEAP', 6, treasure, 6)
-    daggerhigh = Item("Platinum Dagger", 'WEAP', 8, treasure, 8)
-    axelow = Item("Iron Axe", 'WEAP', 0, treasure, 8)
-    axemed = Item("Steel Axe", 'WEAP', 2, treasure, 10)
-    axehigh = Item("Platinum Axe", 'WEAP', 4, treasure, 12)
+    swordlow = Item("Iron Sword", 'WEAP', 2, treasure, 6, 'sword')
+    swordmed = Item("Steel Sword", 'WEAP', 4, treasure, 8, 'sword')
+    swordhigh = Item("Platinum Sword", 'WEAP', 6, treasure, 10, 'sword')
+    daggerlow = Item("Iron Dagger", 'WEAP', 4, treasure, 4, 'dagger')
+    daggermed = Item("Steel Dagger", 'WEAP', 6, treasure, 6, 'dagger')
+    daggerhigh = Item("Platinum Dagger", 'WEAP', 8, treasure, 8, 'dagger')
+    axelow = Item("Iron Axe", 'WEAP', 0, treasure, 8, 'axe')
+    axemed = Item("Steel Axe", 'WEAP', 2, treasure, 10, 'axe')
+    axehigh = Item("Platinum Axe", 'WEAP', 4, treasure, 12, 'axe')
 
-    swordsp = Item("Knight's Sword", 'WEAP', 8, treasure, 10)
-    daggersp = Item("Goblin's Dagger", 'WEAP', 10, treasure, 8)
-    axesp = Item("Axe of Guinea", 'WEAP', 4, treasure, 14)
+    swordsp = Item("Knight's Sword", 'WEAP', 8, treasure, 10, 'sword')
+    daggersp = Item("Goblin's Dagger", 'WEAP', 10, treasure, 8, 'dagger')
+    axesp = Item("Axe of Guinea", 'WEAP', 4, treasure, 14, 'axe')
 
     armorlow = Item("Iron Armor", 'ARM', 3, treasure)
     armormed = Item("Steel Armor", 'ARM', 6, treasure)
@@ -1124,10 +1333,10 @@ def openinv(itemslist):
     log.set_underline(False)
     while True:
         screen.fill(pygame.Color("black"), (0, 0, 500, 500))
-        screen.blit(textatt, (150, 25))
-        screen.blit(textslash, (175, 25))
-        screen.blit(textheal, (183, 25))
-        screen.blit(textdam, (225, 25))
+        screen.blit(textatt, (171, 25))
+        screen.blit(textslash, (195, 25))
+        screen.blit(textheal, (203, 25))
+        screen.blit(textdam, (245, 25))
         invitems = iteminv(itemslist)
         itemslist = restorelistpos(itemslist)
 
@@ -1142,26 +1351,28 @@ def openinv(itemslist):
                 invitems[i].col = j
 
             for i in range(len(invitems)):
-                slot = (50 + (250 * invitems[i].col), 60 + (50 * invitems[i].row))
+                slot = (50 + (260 * invitems[i].col), 60 + (50 * invitems[i].row))
                 if invitems[i].kind == 'WEAP' or invitems[i].kind == 'ARM':
-                    screen.blit(log.render(invitems[i].name + "     " + str(invitems[i].value), True, pygame.Color("blue")), slot)
+                    screen.blit(log.render(invitems[i].name, True, pygame.Color("blue")), slot)
+                    screen.blit(log.render(str(invitems[i].value), True, pygame.Color("blue")), (200 + (260 * invitems[i].col), 60 + (50 * invitems[i].row)))
                     if invitems[i].equip == True:
-                        screen.blit(log.render("*", True, pygame.Color("blue")), (42 + (250 * invitems[i].col), 62 + (50 * invitems[i].row)))
+                        screen.blit(log.render("*", True, pygame.Color("blue")), (42 + (260 * invitems[i].col), 62 + (50 * invitems[i].row)))
                     else:
-                        screen.fill(pygame.Color("black"), (40 + (250 * invitems[i].col), 60 + (50 * invitems[i].row), 5, 5))
+                        screen.fill(pygame.Color("black"), (40 + (260 * invitems[i].col), 60 + (50 * invitems[i].row), 5, 5))
                 if invitems[i].kind == 'WEAP':
-                    screen.blit(log.render(str(invitems[i].damage), True, pygame.Color("red")), (230 + (250 * invitems[i].col), 60 + (50 * invitems[i].row)))
+                    screen.blit(log.render(str(invitems[i].damage), True, pygame.Color("red")), (250 + (260 * invitems[i].col), 60 + (50 * invitems[i].row)))
                 if invitems[i].kind == 'HEAL':
-                    screen.blit(log.render(invitems[i].name + "     " + str(invitems[i].value), True, pygame.Color("yellow")), slot)
+                    screen.blit(log.render(invitems[i].name, True, pygame.Color("yellow")), slot)
+                    screen.blit(log.render(str(invitems[i].value), True, pygame.Color("yellow")), (200 + (260 * invitems[i].col), 60 + (50 * invitems[i].row)))
                 else:
                     screen.blit(log.render(invitems[i].name, True, pygame.Color("white")), slot)
 
-        screen.blit(curschar, (35 + (250 * col), 60 + (50 * row)))
+        screen.blit(curschar, (35 + (260 * col), 60 + (50 * row)))
 
         pygame.display.update()
 
         select = pygame.event.wait()
-        screen.fill(pygame.Color("black"), (30 + (250 * col), 50 + (50 * row), 10, 10))
+        screen.fill(pygame.Color("black"), (30 + (260 * col), 50 + (50 * row), 10, 10))
         if select.type == pygame.QUIT:
             sys.exit()
         elif select.type == pygame.KEYDOWN:
@@ -1187,25 +1398,26 @@ def openinv(itemslist):
 def attack(enemy, weapon):
     rn = random.randint(1, 20) #d20
 
-    if weapon == "fist":
-        if rn + platt > enemy.armor:
-            dam = random.randint(1, 3)
+    if enemy.ghostinv == False:
+        if weapon == "fist":
+            if rn + platt > enemy.armor:
+                dam = random.randint(1, 3)
+                updatelog('att', enemy.name, dam)
+                return enemy.hp - dam
+            else:
+                updatelog('miss', enemy.name)
+                return enemy.hp
+
+        if rn + weapon.value + platt > enemy.armor:
+            dam = random.randint(1, weapon.damage)
             updatelog('att', enemy.name, dam)
             return enemy.hp - dam
         else:
-            updatelog('miss', enemy.name)
-            return enemy.hp
-
-    if rn + weapon.value + platt > enemy.armor:
-        dam = random.randint(1, weapon.damage)
-        updatelog('att', enemy.name, dam)
-        return enemy.hp - dam
-    else:
-        updatelog('miss')
+            updatelog('miss')
 
 #load in another map file and display it on the screen
 def loadmap(direct):
-    global foremap, backmap, plx, ply, floor, room, upstrpos, downstrpos, keypos, loadedroom, wall, ground
+    global foremap, backmap, plx, ply, floor, room, upstrpos, downstrpos, keypos, loadedroom, wall, ground, player, bag, treasure, key, troll, skeleton
     upstrpos = (0, 0)
     downstrpos = (0, 0)
     keypos = (0, 0)
@@ -1250,12 +1462,26 @@ def loadmap(direct):
     if floor <= 5:
         wall = pygame.image.load('graphics/wall.png').convert()
         ground = pygame.image.load('graphics/ground.png').convert()
+        player = pygame.image.load('graphics/player.png').convert()
+        bag = pygame.image.load('graphics/bag.png').convert()
+        treasure = pygame.image.load('graphics/treasure.png').convert()
+        key = pygame.image.load('graphics/key.png').convert()
     if floor > 5 and floor <= 10:
         wall = pygame.image.load('graphics/wall2.png').convert()
         ground = pygame.image.load('graphics/ground2.png').convert()
+        player = pygame.image.load('graphics/player2.png').convert()
+        bag = pygame.image.load('graphics/bag2.png').convert()
+        treasure = pygame.image.load('graphics/treasure2.png').convert()
+        key = pygame.image.load('graphics/key2.png').convert()
+        troll = pygame.image.load('graphics/troll2.png').convert()
     if floor > 10:
-        wall = pygame.image.load('graphics/wall.png').convert()
+        wall = pygame.image.load('graphics/wall.png').convert() #wall3 not done yet
         ground = pygame.image.load('graphics/ground3.png').convert()
+        player = pygame.image.load('graphics/player3.png').convert()
+        bag = pygame.image.load('graphics/bag3.png').convert()
+        treasure = pygame.image.load('graphics/treasure3.png').convert()
+        key = pygame.image.load('graphics/key3.png').convert()
+        skeleton = pygame.image.load('graphics/skeleton2.png').convert()
 
     newmap = "rooms/fl" + str(floor) + "r" + str(room) + ".txt"
     newmap = open(newmap, 'r')
@@ -1449,7 +1675,7 @@ def move(x):
 
     foremap[plx][ply] = player
 
-#main game loop
+#main game loop     this is by far the most messy place in here
 while True:
     event = pygame.event.wait()
     if event.type == pygame.QUIT:
@@ -1476,12 +1702,16 @@ while True:
 
     if event.key != pygame.K_i and event.key != pygame.K_COMMA:
         if speedcount >= 3:
-            speed == False
+            speed = False
             speedcount = 0
             speedturn = 0
 
         if floor == 15:
             multiroomboss = True
+            if loadedroom == False:
+                littlespawn = False
+            else:
+                littlespawn = True
 
         if loadedroom == True and multiroomboss == True and bosses[2].dead == False and bosses[2].enroom == room:   #and and and and and
             bosses[2].enx = 4
@@ -1497,9 +1727,24 @@ while True:
         if speed == False or speedturn == 1:
             for i in range(len(enemies)):
                 enemies[i].die()
+                if enemies[i].name == "Ghost" and enemies[i].hp <= 3  and enemies[i].dead == False:
+                    tempskelgo = skelgo
+                    skelgo = enemies[i].forskellyonly(tempskelgo)
+                    if enemies[i].invcount == 0:
+                        enemies[i].ghostinv = True
+                    if enemies[i].ghostinv == True:
+                        enemies[i].invcount += 1
+                    if enemies[i].invcount == 3:
+                        enemies[i].ghostinv = False #what was I thinking?
+                if enemies[i].name == "Skeleton":
+                    tempskelgo = skelgo
+                    skelgo = enemies[i].forskellyonly(tempskelgo)
                 if enemies[i].dead == False:
                     tempgo = enemies[i].keepgo
                     enemies[i].keepgo = enemies[i].enmv(tempgo)
+                    if enemies[i].name == "Megabat":
+                        tempgo = enemies[i].keepgo
+                        enemies[i].keepgo = enemies[i].enmv(tempgo)
                 else:
                     if enemies[i].drop != None and enemies[i].drop != 0:
                         foremap[enemies[i].enx][enemies[i].eny] = enemies[i].drop
@@ -1513,10 +1758,33 @@ while True:
                 bosses[i].die()
                 checkstage()
                 #I've given up at this point    look at all those useless ands
-                if bosses[i].dead == False and bosses[i].name == "FINAL BOSS" and bosses[i].enroom != room and bosses[i].stage >= 2 and bosses[i].teleported == True:
+                if bosses[i].dead == False and bosses[i].name == "Big-Eagle" and bosses[i].enroom != room and bosses[i].stage >= 2 and bosses[i].teleported == True:
+                    if telecount % 3 == 0:
+                        for j in range(110, 114):
+                            if j == 110 and plx + 2 < 10 and ply + 2 < 10 and foremap[plx + 2][ply + 2] == ground:
+                                enemies[j].enx = plx + 2
+                                enemies[j].eny = ply + 2
+                                enemies[j].spawnx, enemies[j].spawny = plx + 2, ply + 2
+                            if j == 111 and plx - 2 >= 0 and ply - 2 >= 0 and foremap[plx - 2][ply - 2] == ground:
+                                enemies[j].enx = plx - 2
+                                enemies[j].eny = ply - 2
+                                enemies[j].spawnx, enemies[j].spawny = plx - 2, ply - 2
+                            if j == 112 and plx + 2 < 10 and ply - 2 >= 0 and foremap[plx + 2][ply - 2] == ground:    #why
+                                enemies[j].enx = plx + 2
+                                enemies[j].eny = ply - 2
+                                enemies[j].spawnx, enemies[j].spawny = plx + 2, ply - 2
+                            if j == 113 and plx - 2 >= 0 and ply + 2 < 10 and foremap[plx - 2][ply + 2] == ground:
+                                enemies[j].enx = plx - 2
+                                enemies[j].eny = ply + 2
+                                enemies[j].spawnx, enemies[j].spawny = plx - 2, ply + 2
+                            enemies[j].loaded = True
+                            enemies[j].rmfl = (room, floor)
+                            enemies[j].currentloc = ((room, floor), (enemies[j].enx, enemies[j].eny))
+                        updatelog('sur', enemies[110].name)
+                    telecount += 1
                     bosses[i].loaded = False
                     bosses[i].teleported = False
-                if (bosses[i].loaded == True and bosses[i].dead == False) and ((bosses[i].name != "Skeleton" and bosses[i].name != "FINAL BOSS") or bosses[i].stage == 3):
+                if (bosses[i].loaded == True and bosses[i].dead == False) and ((bosses[i].name != "Skeleton" and bosses[i].name != "Big-Eagle") or bosses[i].stage == 3):
                     tempgo = bosses[i].keepgo
                     bosses[i].keepgo = bosses[i].enmv(tempgo)
                 elif bosses[i].loaded == True and bosses[i].dead == False:
@@ -1538,39 +1806,39 @@ while True:
         foremap[plx][ply] = player #makes it so you don't go invisible on a tile a monster died on
         foremap[0][0] = wall
 
-        screen.fill(pygame.Color("black"), (80, 500, 23, 15))
-        screen.fill(pygame.Color("black"), (150, 500, 100, 15))
-        screen.blit(log.render(str(plhp), True, pygame.Color("white")), (86, 500)) #the weird number is used just to keep the value in the same place
+        screen.fill(pygame.Color("black"), (75, 500, 23, 15))
+        screen.fill(pygame.Color("black"), (145, 500, 100, 15))
+        screen.blit(log.render(str(plhp), True, pygame.Color("white")), (82, 500)) #the weird number is used just to keep the value in the same place
         screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (150, 500))
 
         if psn == True:
-            screen.blit(log.render("PSN", True, pygame.Color("purple")), (300, 500))
+            screen.blit(log.render("PSN", True, pygame.Color("purple")), (250, 500))
             if psnstep % 10 == 0:
                 plhp -= 1
             if psnstep >= 100:
                 psn = False
             psnstep += 1
         if para == True:
-            screen.blit(log.render("PARA", True, pygame.Color("red")), (350, 500))
+            screen.blit(log.render("PARA", True, pygame.Color("red")), (280, 500))
             paracount += 1
             if paracount >= paramax:
                 para = False
                 paracount = 0
         if nodam == True:
-            screen.blit(log.render("INV", True, pygame.Color("yellow")), (350, 520))
+            screen.blit(log.render("INV", True, pygame.Color("yellow")), (320, 500))
             nodamcount += 1
             if nodamcount == 5:
-                screen.fill(pygame.Color("black"), (349, 520, 40, 15))
+                screen.fill(pygame.Color("black"), (319, 500, 40, 15))
                 nodam = False
                 nodamcount = 0
         if speed == True:
-            screen.blit(log.render("SPD", True, pygame.Color("cyan")), (300, 520))
+            screen.blit(log.render("SPD", True, pygame.Color("cyan")), (350, 500))
         if speed == False:
-            screen.fill(pygame.Color("black"), (299, 520, 40, 15))
-        if psn == False:
-            screen.fill(pygame.Color("black"), (299, 500, 40, 15))
-        if para == False:
             screen.fill(pygame.Color("black"), (349, 500, 40, 15))
+        if psn == False:
+            screen.fill(pygame.Color("black"), (249, 500, 40, 15))
+        if para == False:
+            screen.fill(pygame.Color("black"), (279, 500, 40, 15))
 
         if plhp <= 0:
             updatelog('dead')
