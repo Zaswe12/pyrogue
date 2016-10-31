@@ -303,7 +303,7 @@ def levelup(lvlxp):
         updatelog('level', level + 1)
         stats = ["HP", "Attack", "Defence"]
 
-        maxhp += random.randint(2, 5)
+        maxhp += random.randint(1, 3)
         platt += random.randint(1, 2)
         armor += random.randint(1, 2)
 
@@ -338,17 +338,15 @@ def levelup(lvlxp):
 
 
         if choice == "HP":
-            rnstat = random.randint(3, 6)
+            rnstat = random.randint(1, 2)
             updatelog('stat', "HP", rnstat)
             maxhp += rnstat    
         if choice == "Attack":
-            rnstat = random.randint(1, 3)
-            updatelog('stat', "attack", rnstat)
-            platt += rnstat
+            updatelog('stat', "attack", 1)
+            platt += 1
         if choice == "Defence":
-            rnstat = random.randint(1, 3)
-            updatelog('stat', "defence", rnstat)
-            armor += rnstat
+            updatelog('stat', "defence", 1)
+            armor += 1
 
         screen.fill(pygame.Color("black"), (105, 500, 23, 15))
         screen.blit(log.render(str(maxhp), True, pygame.Color("white")), (105, 500))
@@ -859,77 +857,77 @@ class Enemy():
 #Name, HP, Attack, Armor, Damage, XP, image
 enemies = [
 #---Floors 1-5---#
-Enemy("Goblin", 5, 6, 10, 3, 3, goblin), #0
-Enemy("Goblin", 5, 6, 10, 3, 3, goblin),
-Enemy("Goblin", 5, 6, 10, 3, 3, goblin),
-Enemy("Goblin", 5, 6, 10, 3, 3, goblin),
-Enemy("Goblin", 5, 6, 10, 3, 3, goblin),
-Enemy("Goblin", 5, 6, 10, 3, 3, goblin),
-Enemy("Goblin", 5, 6, 10, 3, 3, goblin),
-Enemy("Goblin", 5, 6, 10, 3, 3, goblin),
-Enemy("Goblin", 5, 6, 10, 3, 3, goblin),
-Enemy("Goblin", 5, 6, 10, 3, 3, goblin),
-Enemy("Rat", 3, 5, 10, 2, 2, rat),   #10
-Enemy("Rat", 3, 5, 10, 2, 2, rat),
-Enemy("Rat", 3, 5, 10, 2, 2, rat),
-Enemy("Rat", 3, 5, 10, 2, 2, rat),
-Enemy("Rat", 3, 5, 10, 2, 2, rat),
-Enemy("Rat", 3, 5, 10, 2, 2, rat),
-Enemy("Rat", 3, 5, 10, 2, 2, rat),
-Enemy("Rat", 3, 5, 10, 2, 2, rat),
-Enemy("Rat", 3, 5, 10, 2, 2, rat),
-Enemy("Rat", 3, 5, 10, 2, 2, rat),
-Enemy("Snake", 5, 7, 10, 3, 3, snake),   #20
-Enemy("Snake", 5, 7, 10, 3, 3, snake),
-Enemy("Snake", 5, 7, 10, 3, 3, snake),
-Enemy("Snake", 5, 7, 10, 3, 3, snake),
-Enemy("Snake", 5, 7, 10, 3, 3, snake),
-Enemy("Snake", 5, 7, 10, 3, 3, snake),
-Enemy("Snake", 5, 7, 10, 3, 3, snake),
-Enemy("Snake", 5, 7, 10, 3, 3, snake),
-Enemy("Snake", 5, 7, 10, 3, 3, snake),
-Enemy("Snake", 5, 7, 10, 3, 3, snake),
-Enemy("Guinea Pig", 3, 7, 10, 3, 4, guinea), #30
-Enemy("Guinea Pig", 3, 7, 10, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 7, 10, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 7, 10, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 7, 10, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 7, 10, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 7, 10, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 7, 10, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 7, 10, 3, 4, guinea),
-Enemy("Guinea Pig", 3, 7, 10, 3, 4, guinea),
+Enemy("Goblin", 5, 3, 5, 3, 3, goblin), #0
+Enemy("Goblin", 5, 3, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 3, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 3, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 3, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 3, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 3, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 3, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 3, 5, 3, 3, goblin),
+Enemy("Goblin", 5, 3, 5, 3, 3, goblin),
+Enemy("Rat", 3, 2, 6, 2, 2, rat),   #10
+Enemy("Rat", 3, 2, 6, 2, 2, rat),
+Enemy("Rat", 3, 2, 6, 2, 2, rat),
+Enemy("Rat", 3, 2, 6, 2, 2, rat),
+Enemy("Rat", 3, 2, 6, 2, 2, rat),
+Enemy("Rat", 3, 2, 6, 2, 2, rat),
+Enemy("Rat", 3, 2, 6, 2, 2, rat),
+Enemy("Rat", 3, 2, 6, 2, 2, rat),
+Enemy("Rat", 3, 2, 6, 2, 2, rat),
+Enemy("Rat", 3, 2, 6, 2, 2, rat),
+Enemy("Snake", 5, 18, 23, 4, 3, snake),   #20
+Enemy("Snake", 5, 18, 23, 4, 3, snake),
+Enemy("Snake", 5, 18, 23, 4, 3, snake),
+Enemy("Snake", 5, 18, 23, 4, 3, snake),
+Enemy("Snake", 5, 18, 23, 4, 3, snake),
+Enemy("Snake", 5, 18, 23, 4, 3, snake),
+Enemy("Snake", 5, 18, 23, 4, 3, snake),
+Enemy("Snake", 5, 18, 23, 4, 3, snake),
+Enemy("Snake", 5, 18, 23, 4, 3, snake),
+Enemy("Snake", 5, 18, 23, 4, 3, snake),
+Enemy("Guinea Pig", 3, 10, 15, 4, 4, guinea), #30
+Enemy("Guinea Pig", 3, 10, 15, 4, 4, guinea),
+Enemy("Guinea Pig", 3, 10, 15, 4, 4, guinea),
+Enemy("Guinea Pig", 3, 10, 15, 4, 4, guinea),
+Enemy("Guinea Pig", 3, 10, 15, 4, 4, guinea),
+Enemy("Guinea Pig", 3, 10, 15, 4, 4, guinea),
+Enemy("Guinea Pig", 3, 10, 15, 4, 4, guinea),
+Enemy("Guinea Pig", 3, 10, 15, 4, 4, guinea),
+Enemy("Guinea Pig", 3, 10, 15, 4, 4, guinea),
+Enemy("Guinea Pig", 3, 10, 15, 4, 4, guinea),
 #---Floors 6-10---#
-Enemy("Megabat", 10, 10, 15, 4, 5, megabat), #40
-Enemy("Megabat", 10, 10, 15, 4, 5, megabat),
-Enemy("Megabat", 10, 10, 15, 4, 5, megabat),
-Enemy("Megabat", 10, 10, 15, 4, 5, megabat),
-Enemy("Megabat", 10, 10, 15, 4, 5, megabat),
-Enemy("Megabat", 10, 10, 15, 4, 5, megabat),
-Enemy("Megabat", 10, 10, 15, 4, 5, megabat),
-Enemy("Megabat", 10, 10, 15, 4, 5, megabat),
-Enemy("Megabat", 10, 10, 15, 4, 5, megabat),
-Enemy("Megabat", 10, 10, 15, 4, 5, megabat),
-Enemy("Mammoth", 13, 12, 13, 7, 10, mammoth), #50
-Enemy("Mammoth", 13, 12, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 12, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 12, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 12, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 12, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 12, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 12, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 12, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 12, 13, 7, 10, mammoth),
-Enemy("Monster", 10, 13, 14, 5, 6, monster),  #60
-Enemy("Monster", 10, 13, 14, 5, 6, monster),
-Enemy("Monster", 10, 13, 14, 5, 6, monster),
-Enemy("Monster", 10, 13, 14, 5, 6, monster),
-Enemy("Monster", 10, 13, 14, 5, 6, monster),
-Enemy("Monster", 10, 13, 14, 5, 6, monster),
-Enemy("Monster", 10, 13, 14, 5, 6, monster),
-Enemy("Monster", 10, 13, 14, 5, 6, monster),
-Enemy("Monster", 10, 13, 14, 5, 6, monster),
-Enemy("Monster", 10, 13, 14, 5, 6, monster),
+Enemy("Megabat", 10, 15, 25, 4, 5, megabat), #40
+Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
+Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth), #50
+Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
+Enemy("Monster", 10, 18, 18, 5, 6, monster),  #60
+Enemy("Monster", 10, 18, 18, 5, 6, monster),
+Enemy("Monster", 10, 18, 18, 5, 6, monster),
+Enemy("Monster", 10, 18, 18, 5, 6, monster),
+Enemy("Monster", 10, 18, 18, 5, 6, monster),
+Enemy("Monster", 10, 18, 18, 5, 6, monster),
+Enemy("Monster", 10, 18, 18, 5, 6, monster),
+Enemy("Monster", 10, 18, 18, 5, 6, monster),
+Enemy("Monster", 10, 18, 18, 5, 6, monster),
+Enemy("Monster", 10, 18, 18, 5, 6, monster),
 Enemy("Troll", 15, 14, 15, 8, 10, troll), #70
 Enemy("Troll", 15, 14, 15, 8, 10, troll),
 Enemy("Troll", 15, 14, 15, 8, 10, troll),
@@ -984,7 +982,7 @@ Enemy("Little-Eagle", 15, 20, 15, 4, 6, littleeagle)
 ]
 
 bosses = [
-Enemy("Troll", 30, 15, 6, 6, 15, troll),
+Enemy("Troll", 30, 30, 13, 13, 15, troll),
 Enemy("Skeleton", 75, 15, 5, 8, 80, skeleton),
 Enemy("Big-Eagle", 200, 20, 6, 10, 250, bigeagle)
 ]
