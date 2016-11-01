@@ -136,6 +136,7 @@ loadedroom = False
 telecount = 0
 finalset = False
 littlespawn = True
+bossstart = False
 
 #spilts the 1D array into 2D
 for i in range(10):
@@ -846,15 +847,26 @@ class Enemy():
 
     def dropitem(self):
         if random.randint(0, 100) <= 12:
+            rn = random.randint(0, 100)
             if floor < 5:
-                rn = random.randint(0, 100)
                 if rn <= 90:
                     return getitem(self.enx, self.eny, 0, "Weak Potion")
                 if rn > 90:
                     return getitem(self.enx, self.eny, 0, "Antidote")
-            """if floor >= 5 and floor < 10:
-                #stuff
-            if floor >= 10:
+            if floor >= 5 and floor < 10:
+                if rn <= 25:
+                    return getitem(self.enx, self.eny, 0, "Potion")
+                if rn > 25 and rn <= 40:
+                    return getitem(self.enx, self.eny, 0, "Flash Bomb")
+                if rn > 40 and rn <= 55:
+                    return getitem(self.enx, self.eny, 0, "Speed Potion")
+                if rn > 55 and rn <= 75:
+                    return getitem(self.enx, self.eny, 0, "Antidote")
+                if rn > 75 and rn <= 95:
+                    return getitem(self.enx, self.eny, 0, "Paralysis Heal")
+                if rn > 95:
+                    return getitem(self.enx, self.eny, 0, "Weak Potion")
+            """if floor >= 10:
                 #stuff"""
 
     def die(self):
@@ -954,16 +966,16 @@ Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
 Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
 Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
 Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
-Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth), #50
-Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 10, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth), #50
+Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
 Enemy("Monster", 10, 18, 18, 5, 6, monster),  #60
 Enemy("Monster", 10, 18, 18, 5, 6, monster),
 Enemy("Monster", 10, 18, 18, 5, 6, monster),
@@ -1033,6 +1045,7 @@ Enemy("Skeleton", 75, 15, 5, 8, 80, skeleton),
 Enemy("Big-Eagle", 200, 20, 6, 10, 250, bigeagle)
 ]
 
+#good luck figuring what this does
 def getrandmon():
     rn = random.randint(1, 100)
     if floor <= 5:
@@ -1204,6 +1217,18 @@ def getitem(x, y, kind, bagkind = 0):
             tempitem = weakpot
         if bagkind == "Antidote":
             tempitem = ant
+        if bagkind == "Strong Potion":
+            tempitem = strpot
+        if bagkind == "Potion":
+            tempitem = pot
+        if bagkind == "Paralysis Heal":
+            tempitem = paraheal
+        if bagkind == "Speed Potion":
+            tempitem = speed
+        if bagkind == "Invincibility Potion":
+            tempitem = invpot
+        if bagkind == "Flash Bomb":
+            tempitem = flashbomb
         tempitem.pos = (x, y)
         tempitem.rmfl = (room, floor)
         additem(items, tempitem)
@@ -1461,11 +1486,12 @@ def attack(enemy, weapon):
             updatelog('att', enemy.name, dam)
             return enemy.hp - dam
         else:
-            updatelog('miss')
+            updatelog('miss', enemy.name)
+            return enemy.hp
 
 #load in another map file and display it on the screen
 def loadmap(direct):
-    global foremap, backmap, plx, ply, floor, room, upstrpos, downstrpos, keypos, loadedroom, wall, ground, player, bag, treasure, key, troll, skeleton, flash, flashcount, flashmax
+    global foremap, backmap, plx, ply, floor, room, upstrpos, downstrpos, keypos, loadedroom, wall, ground, player, bag, treasure, key, troll, skeleton, flash, flashcount, flashmax, door, bossstart
     upstrpos = (0, 0)
     downstrpos = (0, 0)
     keypos = (0, 0)
@@ -1507,8 +1533,9 @@ def loadmap(direct):
         ply = 1
     if (floor, room) == (10, 1) and direct == 'UP' and bosses[1].dead == False:
         plx = 8
-    """if (floor, room) == (15, x):
-        pl = num"""
+    if (floor, room) == (15, 5) and bossstart == False:
+        plx = 8
+        bossstart = True
 
     if floor <= 5:
         wall = pygame.image.load('graphics/wall.png').convert()
@@ -1524,6 +1551,7 @@ def loadmap(direct):
         bag = pygame.image.load('graphics/bag2.png').convert()
         treasure = pygame.image.load('graphics/treasure2.png').convert()
         key = pygame.image.load('graphics/key2.png').convert()
+        door = pygame.image.load('graphics/door2.png').convert()
         troll = pygame.image.load('graphics/troll2.png').convert()
     if floor > 10:
         wall = pygame.image.load('graphics/wall.png').convert() #wall3 not done yet
@@ -1785,7 +1813,7 @@ while True:
         if speed == False or speedturn == 1:
             for i in range(len(enemies)):
                 enemies[i].die()
-                if enemies[i].name == "Ghost" and enemies[i].hp <= 3  and enemies[i].dead == False:
+                if enemies[i].name == "Ghost" and enemies[i].hp <= 3  and enemies[i].dead == False and enemies[i].loaded == True:
                     tempskelgo = skelgo
                     skelgo = enemies[i].forskellyonly(tempskelgo)
                     if enemies[i].invcount == 0:
@@ -1794,7 +1822,7 @@ while True:
                         enemies[i].invcount += 1
                     if enemies[i].invcount == 3:
                         enemies[i].ghostinv = False #what was I thinking?
-                if enemies[i].name == "Skeleton":
+                if enemies[i].name == "Skeleton" and enemies[i].loaded == True:
                     tempskelgo = skelgo
                     skelgo = enemies[i].forskellyonly(tempskelgo)
                 if enemies[i].dead == False:
