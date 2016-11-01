@@ -93,6 +93,9 @@ speedturn = 0
 speedcount = 0
 nodam = False
 nodamcount = 0
+flash = False
+flashcount = 0
+flashmax = 0
 armoron = False
 nextlvl = [0 for i in range(50)]
 nextlvl[1] = 10
@@ -102,7 +105,7 @@ for i in range(2, 50):
 platt = 1
 armor = 10
 invmax = -1
-invmaxmax = 19
+invmaxmax = 17
 itemrmflxy = [((0, 0), (0, 0))]
 haskey = [0, 0, 0, 0]
 
@@ -188,6 +191,31 @@ def updatelog(kind, thing = 0, value = 0):  #55 characters is the max string len
         text[0] = log.render("The " + thing + " hits you for " + value + " damage", True, pygame.Color("red"))
     if kind == 'enmiss':
         text[0] = log.render("The " + thing + " misses you", True, pygame.Color("white"))
+    if kind == 'crit':
+        if thing == "Goblin":
+            text[0] = log.render("", True, pygame.Color("red"))
+        if thing == "Rat":
+            text[0] = log.render("", True, pygame.Color("red"))
+        if thing == "Snake":
+            text[0] = log.render("", True, pygame.Color("red"))
+        if thing == "Guinea Pig":
+            text[0] = log.render("", True, pygame.Color("red"))
+        if thing == "Megabat":
+            text[0] = log.render("", True, pygame.Color("red"))
+        if thing == "Mammoth":
+            text[0] = log.render("", True, pygame.Color("red"))
+        if thing == "Monster":
+            text[0] = log.render("", True, pygame.Color("red"))
+        if thing == "Troll":
+            text[0] = log.render("", True, pygame.Color("red"))
+        if thing == "Knight":
+            text[0] = log.render("", True, pygame.Color("red"))
+        if thing == "Ghost":
+            text[0] = log.render("", True, pygame.Color("red"))
+        if thing == "Skeleton":
+            text[0] = log.render("", True, pygame.Color("red"))
+        if thing == "Little-Eagle":
+            text[0] = log.render("", True, pygame.Color("red"))
     if kind == 'nodam':
         text[0] = log.render("The " + thing + " hits you but you don't take any damage", True, pygame.Color("white"))
     if kind == 'magi':
@@ -378,6 +406,7 @@ class Item():
         if self.ininv == True:
             self.ininv = False
             self.dropped = True
+            self.equip = False
             invmax -= 1
             self.pos = (plx, ply)
             self.rmfl = (room, floor)
@@ -450,7 +479,12 @@ class Item():
                 nodam = True
                 self.useitem()
                 return True
-            
+        if self.kind == 'FLSH' and self.ininv == True:
+            global flash, flashcount
+            flash = True
+            flashcount = 0
+            self.useitem()
+            return True
 
 items = [Item("Potion", 'HEAL', 5, bag)]
 
@@ -525,6 +559,9 @@ class Enemy():
             rn = random.randint(1, 20)
             if rn + self.att >= armor:
                 dam = random.randint(1, self.damage)
+            elif rn == 20:
+                dam = self.damage * 2
+                updatelog('crit', self.name)
 
             if dam != 0:
                 updatelog('dam', self.name, dam)
@@ -564,7 +601,16 @@ class Enemy():
             return hp
 
     def enmv(self, direct): #at least it works
-        global foremap, plhp
+        global foremap, plhp, flash, flashcount, flashmax
+
+        if flashcount >= flashmax:
+            flash = False
+            flashcount = 0
+            flashmax = 0
+        if flash == True and self.loaded == True:
+            flashcount += 1
+            return 'UP'
+
         pos = foremap[self.enx][self.eny]
         if self.enx + 1 < 10:
             down = foremap[self.enx + 1][self.eny]
@@ -928,16 +974,16 @@ Enemy("Monster", 10, 18, 18, 5, 6, monster),
 Enemy("Monster", 10, 18, 18, 5, 6, monster),
 Enemy("Monster", 10, 18, 18, 5, 6, monster),
 Enemy("Monster", 10, 18, 18, 5, 6, monster),
-Enemy("Troll", 15, 14, 15, 8, 10, troll), #70
-Enemy("Troll", 15, 14, 15, 8, 10, troll),
-Enemy("Troll", 15, 14, 15, 8, 10, troll),
-Enemy("Troll", 15, 14, 15, 8, 10, troll),
-Enemy("Troll", 15, 14, 15, 8, 10, troll),
-Enemy("Troll", 15, 14, 15, 8, 10, troll),
-Enemy("Troll", 15, 14, 15, 8, 10, troll),
-Enemy("Troll", 15, 14, 15, 8, 10, troll),
-Enemy("Troll", 15, 14, 15, 8, 10, troll),
-Enemy("Troll", 15, 14, 15, 8, 10, troll),
+Enemy("Troll", 30, 30, 13, 13, 10, troll), #70
+Enemy("Troll", 30, 30, 13, 13, 10, troll),
+Enemy("Troll", 30, 30, 13, 13, 10, troll),
+Enemy("Troll", 30, 30, 13, 13, 10, troll),
+Enemy("Troll", 30, 30, 13, 13, 10, troll),
+Enemy("Troll", 30, 30, 13, 13, 10, troll),
+Enemy("Troll", 30, 30, 13, 13, 10, troll),
+Enemy("Troll", 30, 30, 13, 13, 10, troll),
+Enemy("Troll", 30, 30, 13, 13, 10, troll),
+Enemy("Troll", 30, 30, 13, 13, 10, troll),
 #---Floors 11-15---#    I can't believe how I actually went through with this crap
 Enemy("Knight", 13, 20, 18, 6, 10, knight), #80
 Enemy("Knight", 13, 20, 18, 6, 10, knight),
@@ -982,7 +1028,7 @@ Enemy("Little-Eagle", 15, 20, 15, 4, 6, littleeagle)
 ]
 
 bosses = [
-Enemy("Troll", 30, 30, 13, 13, 15, troll),
+Enemy("Troll", 30, 30, 13, 13, 30, troll),
 Enemy("Skeleton", 75, 15, 5, 8, 80, skeleton),
 Enemy("Big-Eagle", 200, 20, 6, 10, 250, bigeagle)
 ]
@@ -1151,6 +1197,7 @@ def getitem(x, y, kind, bagkind = 0):
     paraheal = Item("Paralysis Heal", 'PARA', 0, bag)
     speed = Item("Speed Potion", 'SPD', 0, bag)
     invpot = Item("Invincibility Potion", 'INV', 0, bag)
+    flashbomb = Item("Flash Bomb", 'FLSH', 0, bag)
 
     if bagkind != 0: #for drops
         if bagkind == "Weak Potion":
@@ -1252,16 +1299,18 @@ def getitem(x, y, kind, bagkind = 0):
             if rn > 80:
                 tempitem = paraheal
         if floor >= 6 and floor < 10:
-            if rn <= 30:
+            if rn <= 25:
                 tempitem = pot
-            if rn > 30 and rn <= 40:
+            if rn > 25 and rn <= 40:
+                tempitem = flashbomb
+            if rn > 40 and rn <= 55:
                 tempitem = speed
-            if rn > 40 and rn <= 60:
-                tempitem = weakpot
-            if rn > 60 and rn <= 80:
+            if rn > 55 and rn <= 75:
                 tempitem = ant
-            if rn > 80:
+            if rn > 75 and rn <= 95:
                 tempitem = paraheal
+            if rn > 95:
+                tempitem = weakpot
         if floor >= 10:
             if rn <= 5:
                 tempitem = invpot
@@ -1416,12 +1465,15 @@ def attack(enemy, weapon):
 
 #load in another map file and display it on the screen
 def loadmap(direct):
-    global foremap, backmap, plx, ply, floor, room, upstrpos, downstrpos, keypos, loadedroom, wall, ground, player, bag, treasure, key, troll, skeleton
+    global foremap, backmap, plx, ply, floor, room, upstrpos, downstrpos, keypos, loadedroom, wall, ground, player, bag, treasure, key, troll, skeleton, flash, flashcount, flashmax
     upstrpos = (0, 0)
     downstrpos = (0, 0)
     keypos = (0, 0)
     temp = False
     loadedroom = True
+    flash = False
+    flashcount = 0
+    flashmax = 0
 
     for i in range(len(enemies)):
         enemies[i].loaded = False
@@ -1698,6 +1750,13 @@ while True:
             pickup()
         if event.key == pygame.K_a:
             pdb.set_trace()
+
+    if flash == True and flashmax == 0:
+        flashtemp = 0
+        for i in range(len(enemies)):
+            if enemies[i].loaded == True:
+                flashtemp += 1
+        flashmax = flashtemp * 10
 
     if event.key != pygame.K_i and event.key != pygame.K_COMMA:
         if speedcount >= 3:
