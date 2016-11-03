@@ -899,8 +899,19 @@ class Enemy():
                     return getitem(self.enx, self.eny, 0, "Paralysis Heal")
                 if rn > 95:
                     return getitem(self.enx, self.eny, 0, "Weak Potion")
-            """if floor >= 10:
-                #stuff"""
+            if floor >= 10:
+                if rn <= 50:
+                    return getitem(self.enx, self.eny, 0, "Strong Potion")
+                if rn > 50 and rn <= 60:
+                    return getitem(self.enx, self.eny, 0, "Speed Potion")
+                if rn > 60 and rn <= 75:
+                    return getitem(self.enx, self.eny, 0, "Flash Bomb")
+                if rn > 75 and rn <= 80:
+                    return getitem(self.enx, self.eny, 0, "Heal All")
+                if rn > 80 and rn <= 95:
+                    return getitem(self.enx, self.eny, 0, "Potion")
+                if rn > 95:
+                    return getitem(self.enx, self.eny, 0, "Invincibility Potion")
 
     def die(self):
         global xp, foremap
@@ -1263,6 +1274,10 @@ def getitem(x, y, kind, bagkind = 0):
             tempitem = invpot
         if bagkind == "Flash Bomb":
             tempitem = flashbomb
+        if bagkind == "Heal All":
+            tempitem = healall
+        if bagkind == "Flash Bomb":
+            tempitem = flashbomb
         tempitem.pos = (x, y)
         tempitem.rmfl = (room, floor)
         additem(items, tempitem)
@@ -1369,18 +1384,18 @@ def getitem(x, y, kind, bagkind = 0):
             if rn > 85:
                 tempitem = weakpot
         if floor >= 10:
-            if rn <= 5:
-                tempitem = invpot
-            if rn > 5 and rn <= 15:
-                tempitem = speed
-            if rn > 15 and rn <= 30:
-                tempitem = ant
-            if rn > 30 and rn <= 50:
-                tempitem = paraheal
-            if rn > 50 and rn <= 70:
+            if rn <= 50:
                 tempitem = strpot
-            if rn > 70:
+            if rn > 50 and rn <= 60:
+                tempitem = speed
+            if rn > 60 and rn <= 75:
+                tempitem = flashbomb
+            if rn > 75 and rn <= 80:
+                tempitem = healall
+            if rn > 80 and rn <= 95:
                 tempitem = pot
+            if rn > 95:
+                tempitem = invpot
     tempitem.pos = (x, y)
     tempitem.rmfl = (room, floor)
     additem(items, tempitem)
