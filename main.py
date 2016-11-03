@@ -133,7 +133,7 @@ screen.blit(log.render("Att: " + str(platt), True, pygame.Color("white")), (160,
 screen.blit(log.render("Def: " + str(armor), True, pygame.Color("white")), (220, 500))
 
 pygame.mixer.init()
-pygame.mixer.music.load('music/BGM2.wav')
+pygame.mixer.music.load('music/BGM2.ogg')
 pygame.mixer.music.play(-1)
 
 skelgo = 'UP'
@@ -966,16 +966,16 @@ Enemy("Rat", 3, 2, 6, 2, 2, rat),
 Enemy("Rat", 3, 2, 6, 2, 2, rat),
 Enemy("Rat", 3, 2, 6, 2, 2, rat),
 Enemy("Rat", 3, 2, 6, 2, 2, rat),
-Enemy("Snake", 12, 36, 25, 4, 3, snake),   #20
-Enemy("Snake", 12, 36, 25, 4, 3, snake),
-Enemy("Snake", 12, 36, 25, 4, 3, snake),
-Enemy("Snake", 12, 36, 25, 4, 3, snake),
-Enemy("Snake", 12, 36, 25, 4, 3, snake),
-Enemy("Snake", 12, 36, 25, 4, 3, snake),
-Enemy("Snake", 12, 36, 25, 4, 3, snake),
-Enemy("Snake", 12, 36, 25, 4, 3, snake),
-Enemy("Snake", 12, 36, 25, 4, 3, snake),
-Enemy("Snake", 12, 36, 25, 4, 3, snake),
+Enemy("Snake", 6, 15, 25, 4, 3, snake),   #20
+Enemy("Snake", 6, 15, 25, 4, 3, snake),
+Enemy("Snake", 6, 15, 25, 4, 3, snake),
+Enemy("Snake", 6, 15, 25, 4, 3, snake),
+Enemy("Snake", 6, 15, 25, 4, 3, snake),
+Enemy("Snake", 6, 15, 25, 4, 3, snake),
+Enemy("Snake", 6, 15, 25, 4, 3, snake),
+Enemy("Snake", 6, 15, 25, 4, 3, snake),
+Enemy("Snake", 6, 15, 25, 4, 3, snake),
+Enemy("Snake", 6, 15, 25, 4, 3, snake),
 Enemy("Guinea Pig", 6, 15, 20, 4, 4, guinea), #30
 Enemy("Guinea Pig", 6, 15, 20, 4, 4, guinea),
 Enemy("Guinea Pig", 6, 15, 20, 4, 4, guinea),
@@ -1017,16 +1017,16 @@ Enemy("Monster", 10, 18, 18, 5, 6, monster),
 Enemy("Monster", 10, 18, 18, 5, 6, monster),
 Enemy("Monster", 10, 18, 18, 5, 6, monster),
 Enemy("Monster", 10, 18, 18, 5, 6, monster),
-Enemy("Troll", 30, 30, 13, 13, 10, troll), #70
-Enemy("Troll", 30, 30, 13, 13, 10, troll),
-Enemy("Troll", 30, 30, 13, 13, 10, troll),
-Enemy("Troll", 30, 30, 13, 13, 10, troll),
-Enemy("Troll", 30, 30, 13, 13, 10, troll),
-Enemy("Troll", 30, 30, 13, 13, 10, troll),
-Enemy("Troll", 30, 30, 13, 13, 10, troll),
-Enemy("Troll", 30, 30, 13, 13, 10, troll),
-Enemy("Troll", 30, 30, 13, 13, 10, troll),
-Enemy("Troll", 30, 30, 13, 13, 10, troll),
+Enemy("Troll", 30, 25, 13, 13, 10, troll), #70
+Enemy("Troll", 30, 25, 13, 13, 10, troll),
+Enemy("Troll", 30, 25, 13, 13, 10, troll),
+Enemy("Troll", 30, 25, 13, 13, 10, troll),
+Enemy("Troll", 30, 25, 13, 13, 10, troll),
+Enemy("Troll", 30, 25, 13, 13, 10, troll),
+Enemy("Troll", 30, 25, 13, 13, 10, troll),
+Enemy("Troll", 30, 25, 13, 13, 10, troll),
+Enemy("Troll", 30, 25, 13, 13, 10, troll),
+Enemy("Troll", 30, 25, 13, 13, 10, troll),
 #---Floors 11-15---#    I can't believe how I actually went through with this crap
 Enemy("Knight", 13, 20, 18, 6, 10, knight), #80
 Enemy("Knight", 13, 20, 18, 6, 10, knight),
@@ -1071,7 +1071,7 @@ Enemy("Little-Eagle", 15, 20, 15, 4, 6, littleeagle)
 ]
 
 bosses = [
-Enemy("Troll", 30, 30, 13, 13, 30, troll),
+Enemy("Troll", 30, 25, 13, 13, 30, troll),
 Enemy("Skeleton", 75, 15, 5, 8, 80, skeleton),
 Enemy("Big-Eagle", 200, 20, 6, 10, 250, bigeagle)
 ]
