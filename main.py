@@ -130,7 +130,7 @@ foremap = [[0 for i in range(10)] for j in range(10)]
 screen.blit(log.render("HP: " + str(plhp) + "/" + str(maxhp), True, pygame.Color("white")), (0, 500))
 screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (80, 500))
 screen.blit(log.render("Att: " + str(platt), True, pygame.Color("white")), (160, 500))
-screen.blit(log.render("Def: " + str(armor), True, pygame.Color("white")), (220, 500))
+screen.blit(log.render("Def: " + str(armor), True, pygame.Color("white")), (230, 500))
 
 pygame.mixer.init()
 pygame.mixer.music.load('music/BGM2.ogg')
@@ -395,7 +395,9 @@ def levelup(lvlxp):
             updatelog('stat', "defence", 1)
             armor += 1
 
+        screen.fill(pygame.Color("black"), (25, 500, 23, 15))
         screen.fill(pygame.Color("black"), (55, 500, 23, 15))
+        screen.blit(log.render(str(plhp), True, pygame.Color("white")), (32, 500))
         screen.blit(log.render(str(maxhp), True, pygame.Color("white")), (55, 500))
         plhp = maxhp
         xp = xp - lvlxp
@@ -464,8 +466,8 @@ class Item():
                 self.equip = False
                 armoron = False
                 armor -= self.value
-            screen.fill(pygame.Color("black"), (259, 500, 20, 15))
-            screen.blit(log.render(str(armor), True, pygame.Color("white")), (260, 500))
+            screen.fill(pygame.Color("black"), (269, 500, 20, 15))
+            screen.blit(log.render(str(armor), True, pygame.Color("white")), (270, 500))
         if self.kind == 'HEAL' and self.ininv == True:
             if self.value + plhp > maxhp:
                 updatelog('heal', maxhp - plhp)
@@ -674,7 +676,7 @@ class Enemy():
             if down == player or up == player or right == player or left == player:
                 plhp = self.enatt(plhp)
                 attacked = True
-        if self.loaded == True and attacked == False:
+        if self.loaded == True and attacked == False and self.hp > 0:
 
             foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
 
@@ -905,7 +907,7 @@ class Enemy():
         self.drop = 0
         if self.hp <= 0:
             self.dead = True
-            loaded = False
+            self.loaded = False
             if self.xpused == False:
                 xp += self.xp
                 self.xpused = True
@@ -987,26 +989,26 @@ Enemy("Guinea Pig", 6, 15, 20, 4, 4, guinea),
 Enemy("Guinea Pig", 6, 15, 20, 4, 4, guinea),
 Enemy("Guinea Pig", 6, 15, 20, 4, 4, guinea),
 #---Floors 6-10---#
-Enemy("Megabat", 10, 15, 25, 4, 10, megabat), #40
-Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
-Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth), #50
-Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
-Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
+Enemy("Megabat", 10, 20, 25, 4, 10, megabat), #40
+Enemy("Megabat", 10, 20, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 20, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 20, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 20, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 20, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 20, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 20, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 20, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 20, 25, 4, 10, megabat),
+Enemy("Mammoth", 13, 23, 13, 7, 12, mammoth), #50
+Enemy("Mammoth", 13, 23, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 23, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 23, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 23, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 23, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 23, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 23, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 23, 13, 7, 12, mammoth),
+Enemy("Mammoth", 13, 23, 13, 7, 12, mammoth),
 Enemy("Monster", 10, 18, 18, 5, 6, monster),  #60
 Enemy("Monster", 10, 18, 18, 5, 6, monster),
 Enemy("Monster", 10, 18, 18, 5, 6, monster),
@@ -1356,15 +1358,15 @@ def getitem(x, y, kind, bagkind = 0):
             if rn > 80:
                 tempitem = paraheal
         if floor >= 6 and floor < 10:
-            if rn <= 40:
+            if rn <= 50:
                 tempitem = pot
-            if rn > 40 and rn <= 60:
+            if rn > 50 and rn <= 65:
                 tempitem = flashbomb
-            if rn > 60 and rn <= 75:
+            if rn > 65 and rn <= 75:
                 tempitem = speed
-            if rn > 75 and rn <= 95:
+            if rn > 75 and rn <= 85:
                 tempitem = healall
-            if rn > 95:
+            if rn > 85:
                 tempitem = weakpot
         if floor >= 10:
             if rn <= 5:
@@ -1825,7 +1827,11 @@ while True:
         if event.key == pygame.K_COMMA:
             pickup()
         if event.key == pygame.K_a:
-            pdb.set_trace()
+            floor = 11
+            room = 0
+        if event.key == pygame.K_r:
+            xp += 10
+        
 
     if flash == True and flashmax == 0:
         flashtemp = 0
@@ -1943,14 +1949,14 @@ while True:
         screen.fill(pygame.Color("black"), (25, 500, 23, 15))
         screen.fill(pygame.Color("black"), (75, 500, 80, 15))
         screen.fill(pygame.Color("black"), (199, 500, 20, 15))
-        screen.fill(pygame.Color("black"), (259, 500, 20, 15))
+        screen.fill(pygame.Color("black"), (269, 500, 20, 15))
         screen.blit(log.render(str(plhp), True, pygame.Color("white")), (32, 500)) #the weird number is used just to keep the value in the same place
         screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (80, 500))
         if weapon == "fist":
             screen.blit(log.render(str(platt), True, pygame.Color("white")), (200, 500))
         else:
             screen.blit(log.render(str(platt + weapon.value), True, pygame.Color("white")), (200, 500))
-        screen.blit(log.render(str(armor), True, pygame.Color("white")), (260, 500))
+        screen.blit(log.render(str(armor), True, pygame.Color("white")), (270, 500))
 
         if psn == True:
             screen.blit(log.render("PSN", True, pygame.Color("purple")), (325, 500))
