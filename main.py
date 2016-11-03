@@ -127,8 +127,14 @@ map1D = mapfile.read()
 map1D = map1D.replace('\n', '')
 backmap = [[0 for i in range(10)] for j in range(10)] #creates an empty 2D array
 foremap = [[0 for i in range(10)] for j in range(10)]
-screen.blit(log.render("HP: " + str(plhp) + "/" + str(maxhp), True, pygame.Color("white")), (50, 500))
-screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (150, 500))
+screen.blit(log.render("HP: " + str(plhp) + "/" + str(maxhp), True, pygame.Color("white")), (0, 500))
+screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (80, 500))
+screen.blit(log.render("Att: " + str(platt), True, pygame.Color("white")), (160, 500))
+screen.blit(log.render("Def: " + str(armor), True, pygame.Color("white")), (220, 500))
+
+pygame.mixer.init()
+pygame.mixer.music.load('music/BGM2.wav')
+pygame.mixer.music.play(-1)
 
 skelgo = 'UP'
 multiroomboss = False
@@ -235,10 +241,16 @@ def updatelog(kind, thing = 0, value = 0):  #55 characters is the max string len
         text[0] = log.render("You pick up the " + thing, True, pygame.Color("white"))
     if kind == 'drop':
         text[0] = log.render("You dropped the " + thing, True, pygame.Color("white"))
+    if kind == 'wrongkey':
+        text[0] = log.render("The key doesn't seem to fit", True, pygame.Color("white"))
+    if kind == 'nokey':
+        text[0] = log.render("You need a key to open this", True, pygame.Color("white"))
     if kind == 'heal':
         text[0] = log.render("You healed yourself for " + thing + " damage", True, pygame.Color("yellow"))
     if kind == 'ant':
         text[0] = log.render("You recovered from the poison", True, pygame.Color("purple"))
+    if kind == 'paraheal':
+        text[0] = log.render("You recovered from the paralysis", True, pygame.Color("red"))
     if kind == 'level':
         text[0] = log.render("You are now level " + thing, True, pygame.Color("green"))
     if kind == 'stat':
@@ -258,11 +270,11 @@ def updatelog(kind, thing = 0, value = 0):  #55 characters is the max string len
             if thing == "Megabat":
                 text[0] = log.render("You cut off the Bat's wings", True, pygame.Color("blue"))
             if thing == "Mammoth":
-                text[0] = log.render("You  slice off it's trunk", True, pygame.Color("blue"))
+                text[0] = log.render("You slice off it's trunk", True, pygame.Color("blue"))
             if thing == "Monster":
                 text[0] = log.render("You impale it's smug face", True, pygame.Color("blue"))
             if thing == "Troll":
-                text[0] = log.render("You You cut off the Troll's club arm", True, pygame.Color("blue"))
+                text[0] = log.render("You cut off the Troll's club arm", True, pygame.Color("blue"))
             if thing == "Knight":
                 text[0] = log.render("You slash at the gaps of it's armor", True, pygame.Color("blue"))
             if thing == "Ghost":
@@ -332,9 +344,15 @@ def levelup(lvlxp):
         updatelog('level', level + 1)
         stats = ["HP", "Attack", "Defence"]
 
-        maxhp += random.randint(1, 3)
-        platt += random.randint(1, 2)
-        armor += random.randint(1, 2)
+        rn = random.randint(1, 3)
+        maxhp += rn
+        updatelog('stat', "HP", rn)
+        rn = random.randint(1, 2)
+        platt += rn
+        updatelog('stat', "attack", rn)
+        rn = random.randint(1, 2)
+        armor += rn
+        updatelog('stat', "defence", rn)
 
         screen.fill(pygame.Color("black"), (0, 515, 600, 85))
         for i in range(len(stats)):
@@ -377,8 +395,8 @@ def levelup(lvlxp):
             updatelog('stat', "defence", 1)
             armor += 1
 
-        screen.fill(pygame.Color("black"), (105, 500, 23, 15))
-        screen.blit(log.render(str(maxhp), True, pygame.Color("white")), (105, 500))
+        screen.fill(pygame.Color("black"), (55, 500, 23, 15))
+        screen.blit(log.render(str(maxhp), True, pygame.Color("white")), (55, 500))
         plhp = maxhp
         xp = xp - lvlxp
         return level + 1
@@ -426,14 +444,17 @@ class Item():
         items.pop(self.listpos)
 
     def use(self):
-        global weapon, plhp, maxhp, armor, armoron
+        global weapon, plhp, maxhp, armor, armoron, psn, para
         if self.kind == 'WEAP':
+            screen.fill(pygame.Color("black"), (199, 500, 20, 15))
             if self.equip == False and weapon == "fist":
                 self.equip = True
                 weapon = self
+                screen.blit(log.render(str(platt + weapon.value), True, pygame.Color("white")), (200, 500))
             elif self.equip == True:
                 self.equip = False
                 weapon = "fist"
+                screen.blit(log.render(str(platt), True, pygame.Color("white")), (200, 500))
         if self.kind == 'ARM':
             if self.equip == False and armoron == False:
                 self.equip = True
@@ -443,6 +464,8 @@ class Item():
                 self.equip = False
                 armoron = False
                 armor -= self.value
+            screen.fill(pygame.Color("black"), (259, 500, 20, 15))
+            screen.blit(log.render(str(armor), True, pygame.Color("white")), (260, 500))
         if self.kind == 'HEAL' and self.ininv == True:
             if self.value + plhp > maxhp:
                 updatelog('heal', maxhp - plhp)
@@ -451,21 +474,27 @@ class Item():
                 plhp += self.value
                 updatelog('heal', self.value)
             self.useitem()
-            screen.fill(pygame.Color("black"), (75, 500, 23, 15))
-            screen.blit(log.render(str(plhp), True, pygame.Color("white")), (82, 500))
+            screen.fill(pygame.Color("black"), (25, 500, 23, 15))
+            screen.blit(log.render(str(plhp), True, pygame.Color("white")), (32, 500))
             return True
         if self.kind == 'PSN' and self.ininv == True:
-            global psn
             if psn == True:
                 psn = False
                 self.useitem()
-                screen.fill(pygame.Color("black"), (299, 500, 40, 15))
+                screen.fill(pygame.Color("black"), (324, 500, 30, 15))
                 updatelog('ant')
                 return True
         if self.kind == 'PARA' and self.ininv == True:
-            global para
             if para == True:
                 para = False
+                self.useitem()
+                screen.fill(pygame.Color("black"), (354, 500, 45, 15))
+                updatelog('paraheal')
+                return True
+        if self.kind == 'ALL' and self.ininv == True:
+            if para == True or psn == True:
+                para = False
+                psn = False
                 self.useitem()
                 return True
         if self.kind == 'SPD' and self.ininv == True:
@@ -473,12 +502,14 @@ class Item():
             if speed == False:
                 speed = True
                 self.useitem()
+                screen.blit(log.render("SPD", True, pygame.Color("cyan")), (390, 500))
                 return True
         if self.kind == 'INV' and self.ininv == True:
             global nodam
             if nodam == False:
                 nodam = True
                 self.useitem()
+                screen.blit(log.render("INV", True, pygame.Color("yellow")), (420, 500))
                 return True
         if self.kind == 'FLSH' and self.ininv == True:
             global flash, flashcount
@@ -572,7 +603,7 @@ class Enemy():
             rnstatus = random.randint(1, 100)
             if spec == "para":
                 para = True
-                paramax = random.randint(1, 8)
+                paramax = random.randint(1, 10)
             if self.name == "Rat":
                 if rnstatus <= 10:
                     psn = True
@@ -581,18 +612,18 @@ class Enemy():
                     psn = True
                 if rnstatus > 10 and rnstatus <= 20:
                     para = True
-                    paramax = 3
+                    paramax = 10
             if self.name == "Megabat":
                 if rnstatus <= 20:
                     psn = True
             if self.name == "Monster":
                 if rnstatus <= 20:
                     para = True
-                    paramax = 4
+                    paramax = 12
             if self.name == "Skeleton":
                 if rnstatus <= 20:
                     para = True
-                    paramax = 5
+                    paramax = 8
             if self.name == "Big-Eagle" and self.stage == 3:
                 if random.randint(1, 100) <= 10:
                     self.tele()
@@ -956,16 +987,16 @@ Enemy("Guinea Pig", 6, 15, 20, 4, 4, guinea),
 Enemy("Guinea Pig", 6, 15, 20, 4, 4, guinea),
 Enemy("Guinea Pig", 6, 15, 20, 4, 4, guinea),
 #---Floors 6-10---#
-Enemy("Megabat", 10, 15, 25, 4, 5, megabat), #40
-Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
-Enemy("Megabat", 10, 15, 25, 4, 5, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 10, megabat), #40
+Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
+Enemy("Megabat", 10, 15, 25, 4, 10, megabat),
 Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth), #50
 Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
 Enemy("Mammoth", 13, 20, 13, 7, 12, mammoth),
@@ -1208,6 +1239,7 @@ def getitem(x, y, kind, bagkind = 0):
     strpot = Item("Strong Potion", 'HEAL', 30, bag)
     ant = Item("Antidote", 'PSN', 0, bag)
     paraheal = Item("Paralysis Heal", 'PARA', 0, bag)
+    healall = Item("Heal All", 'ALL', 0, bag)
     speed = Item("Speed Potion", 'SPD', 0, bag)
     invpot = Item("Invincibility Potion", 'INV', 0, bag)
     flashbomb = Item("Flash Bomb", 'FLSH', 0, bag)
@@ -1324,16 +1356,14 @@ def getitem(x, y, kind, bagkind = 0):
             if rn > 80:
                 tempitem = paraheal
         if floor >= 6 and floor < 10:
-            if rn <= 25:
+            if rn <= 40:
                 tempitem = pot
-            if rn > 25 and rn <= 40:
+            if rn > 40 and rn <= 60:
                 tempitem = flashbomb
-            if rn > 40 and rn <= 55:
+            if rn > 60 and rn <= 75:
                 tempitem = speed
-            if rn > 55 and rn <= 75:
-                tempitem = ant
             if rn > 75 and rn <= 95:
-                tempitem = paraheal
+                tempitem = healall
             if rn > 95:
                 tempitem = weakpot
         if floor >= 10:
@@ -1671,12 +1701,21 @@ def move(x):
                 bosses[i].hp = attack(bosses[i], weapon)
                 attacked = True
 
-        for i in range(len(haskey)):
-            if foremap[plx - 1][ply] == door and haskey[i] == floor:
-                foremap[plx - 1][ply] = backmap[plx - 1][ply]
-                haskey[i] = 0
-                dooropen.append((room, floor))
-                keystatus()
+        if foremap[plx - 1][ply] == door:
+            for i in range(len(haskey)):
+                keyflag = 0
+                if haskey[i] == floor:
+                    foremap[plx - 1][ply] = backmap[plx - 1][ply]
+                    haskey[i] = 0
+                    dooropen.append((room, floor))
+                    keystatus()
+                    return
+                else:
+                    keyflag += 1
+            if keyflag == 4:
+                updatelog('wrongkey')
+                return
+            updatelog('nokey')
 
         if foremap[plx - 1][ply] != wall and foremap[plx - 1][ply] != statue and foremap[plx - 1][ply] != door and load == False and attacked == False:
             plx -= 1
@@ -1713,12 +1752,21 @@ def move(x):
                 attacked = True
 
         #I only put this in the LEFT and UP, sue me
-        for i in range(len(haskey)):
-            if foremap[plx][ply - 1] == door and haskey[i] == floor:
-                foremap[plx][ply - 1] = backmap[plx][ply - 1]
-                haskey[i] = 0
-                dooropen.append((room, floor))
-                keystatus()
+        if foremap[plx][ply - 1] == door:
+            keyflag = 0
+            for i in range(len(haskey)):
+                if haskey[i] == floor:
+                    foremap[plx][ply - 1] = backmap[plx][ply - 1]
+                    haskey[i] = 0
+                    dooropen.append((room, floor))
+                    keystatus()
+                    return
+                else:
+                    keyflag += 1
+            if keyflag == 4:
+                updatelog('wrongkey')
+                return
+            updatelog('nokey')
 
         if foremap[plx][ply - 1] != wall and foremap[plx][ply - 1] != statue and foremap[plx][ply - 1] != door and load == False and attacked == False:
             ply -= 1
@@ -1787,7 +1835,7 @@ while True:
         flashmax = flashtemp * 10
 
     if event.key != pygame.K_i and event.key != pygame.K_COMMA:
-        if speedcount >= 3:
+        if speedcount >= 10:
             speed = False
             speedcount = 0
             speedturn = 0
@@ -1811,6 +1859,8 @@ while True:
             bosses[2].enroom = 5
 
         if speed == False or speedturn == 1:
+            speedcount += 1
+            speedturn = 0
             for i in range(len(enemies)):
                 enemies[i].die()
                 if enemies[i].name == "Ghost" and enemies[i].hp <= 3  and enemies[i].dead == False and enemies[i].loaded == True:
@@ -1884,52 +1934,57 @@ while True:
                     screen.blit(wall, (0, 0))
                     pygame.display.update()
                     bosses[i].enx, bosses[i].eny = 0, 0
-            speedcount += 1
-            speedturn = 0
         elif speed == True:
             speedturn += 1
 
         foremap[plx][ply] = player #makes it so you don't go invisible on a tile a monster died on
         foremap[0][0] = wall
 
-        screen.fill(pygame.Color("black"), (75, 500, 23, 15))
-        screen.fill(pygame.Color("black"), (145, 500, 100, 15))
-        screen.blit(log.render(str(plhp), True, pygame.Color("white")), (82, 500)) #the weird number is used just to keep the value in the same place
-        screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (150, 500))
+        screen.fill(pygame.Color("black"), (25, 500, 23, 15))
+        screen.fill(pygame.Color("black"), (75, 500, 80, 15))
+        screen.fill(pygame.Color("black"), (199, 500, 20, 15))
+        screen.fill(pygame.Color("black"), (259, 500, 20, 15))
+        screen.blit(log.render(str(plhp), True, pygame.Color("white")), (32, 500)) #the weird number is used just to keep the value in the same place
+        screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (80, 500))
+        if weapon == "fist":
+            screen.blit(log.render(str(platt), True, pygame.Color("white")), (200, 500))
+        else:
+            screen.blit(log.render(str(platt + weapon.value), True, pygame.Color("white")), (200, 500))
+        screen.blit(log.render(str(armor), True, pygame.Color("white")), (260, 500))
 
         if psn == True:
-            screen.blit(log.render("PSN", True, pygame.Color("purple")), (250, 500))
+            screen.blit(log.render("PSN", True, pygame.Color("purple")), (325, 500))
             if psnstep % 10 == 0:
                 plhp -= 1
             if psnstep >= 100:
                 psn = False
             psnstep += 1
         if para == True:
-            screen.blit(log.render("PARA", True, pygame.Color("red")), (280, 500))
+            screen.blit(log.render("PARA", True, pygame.Color("red")), (355, 500))
             paracount += 1
             if paracount >= paramax:
                 para = False
                 paracount = 0
         if nodam == True:
-            screen.blit(log.render("INV", True, pygame.Color("yellow")), (320, 500))
+            screen.blit(log.render("INV", True, pygame.Color("yellow")), (420, 500))
             nodamcount += 1
             if nodamcount == 5:
-                screen.fill(pygame.Color("black"), (319, 500, 40, 15))
+                screen.fill(pygame.Color("black"), (419, 500, 30, 15))
                 nodam = False
                 nodamcount = 0
         if speed == True:
-            screen.blit(log.render("SPD", True, pygame.Color("cyan")), (350, 500))
+            screen.blit(log.render("SPD", True, pygame.Color("cyan")), (390, 500))
         if speed == False:
-            screen.fill(pygame.Color("black"), (349, 500, 40, 15))
+            screen.fill(pygame.Color("black"), (389, 500, 30, 15))
         if psn == False:
-            screen.fill(pygame.Color("black"), (249, 500, 40, 15))
+            screen.fill(pygame.Color("black"), (324, 500, 30, 15))
         if para == False:
-            screen.fill(pygame.Color("black"), (279, 500, 40, 15))
+            screen.fill(pygame.Color("black"), (354, 500, 45, 15))
 
         if plhp <= 0:
             updatelog('dead')
             screen.fill(pygame.Color("black"), (0, 0, 500, 500))
-            screen.blit(big.render("GAME OVER", True, pygame.Color("red")), (125, 200))
+            screen.blit(big.render("GAME OVER", True, pygame.Color("red")), (120, 200))
             pygame.display.update()
             pygame.time.wait(1000)
             event = pygame.event.wait()
