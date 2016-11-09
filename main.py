@@ -12,6 +12,7 @@ pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN])
 pygame.font.init()
 
 log = pygame.font.SysFont("monospace", 14)
+med = pygame.font.SysFont("monospace", 28)
 big = pygame.font.SysFont("monospace", 50)
 text = [log.render("", True, pygame.Color("black")) for i in range(5)] #for the updatelog function
 
@@ -69,7 +70,9 @@ knight = pygame.image.load('graphics/knight.png').convert()
 ghost = pygame.image.load('graphics/ghost.png').convert()
 littleeagle = pygame.image.load('graphics/littleeagle.png').convert()
 troll = pygame.image.load('graphics/troll.png').convert()
+troll2 = pygame.image.load('graphics/troll2.png').convert()
 skeleton = pygame.image.load('graphics/skeleton.png').convert()
+skeleton2 = pygame.image.load('graphics/skeleton2.png').convert()
 bigeagle = pygame.image.load('graphics/bigeagle.png').convert()
 treasure = pygame.image.load('graphics/treasure.png').convert()
 bag = pygame.image.load('graphics/bag.png').convert()
@@ -133,7 +136,7 @@ screen.blit(log.render("Att: " + str(platt), True, pygame.Color("white")), (160,
 screen.blit(log.render("Def: " + str(armor), True, pygame.Color("white")), (230, 500))
 
 pygame.mixer.init()
-pygame.mixer.music.load('music/BGM2.ogg')
+pygame.mixer.music.load('music/BGM1.ogg')
 pygame.mixer.music.play(-1)
 
 skelgo = 'UP'
@@ -200,29 +203,29 @@ def updatelog(kind, thing = 0, value = 0):  #55 characters is the max string len
         text[0] = log.render("The " + thing + " misses you", True, pygame.Color("white"))
     if kind == 'crit':
         if thing == "Goblin":
-            text[0] = log.render("", True, pygame.Color("red"))
+            text[0] = log.render("The Goblin wraps its tie around you!", True, pygame.Color("red"))
         if thing == "Rat":
-            text[0] = log.render("", True, pygame.Color("red"))
+            text[0] = log.render("The Rat goes for your ankles!", True, pygame.Color("red"))
         if thing == "Snake":
-            text[0] = log.render("", True, pygame.Color("red"))
+            text[0] = log.render("The Snake sidles up and coils!", True, pygame.Color("red"))
         if thing == "Guinea Pig":
-            text[0] = log.render("", True, pygame.Color("red"))
+            text[0] = log.render("The Guinea Pig gives you a karate kick!", True, pygame.Color("red"))
         if thing == "Megabat":
-            text[0] = log.render("", True, pygame.Color("red"))
+            text[0] = log.render("The Bat buffets you mightily with its wings!", True, pygame.Color("red"))
         if thing == "Mammoth":
-            text[0] = log.render("", True, pygame.Color("red"))
+            text[0] = log.render("The Mammoth stomps you!", True, pygame.Color("red"))
         if thing == "Monster":
-            text[0] = log.render("", True, pygame.Color("red"))
+            text[0] = log.render("The Monster gets you around the throat!", True, pygame.Color("red"))
         if thing == "Troll":
-            text[0] = log.render("", True, pygame.Color("red"))
+            text[0] = log.render("The Troll smashes you with its turkey leg!", True, pygame.Color("red"))
         if thing == "Knight":
-            text[0] = log.render("", True, pygame.Color("red"))
+            text[0] = log.render("The Knight tries a leaping attack!", True, pygame.Color("red"))
         if thing == "Ghost":
-            text[0] = log.render("", True, pygame.Color("red"))
+            text[0] = log.render("The Ghost kicks you in the shins!", True, pygame.Color("red"))
         if thing == "Skeleton":
-            text[0] = log.render("", True, pygame.Color("red"))
+            text[0] = log.render("The Skeleton slashes wildly with the knife!", True, pygame.Color("red"))
         if thing == "Little-Eagle":
-            text[0] = log.render("", True, pygame.Color("red"))
+            text[0] = log.render("The Little-Eagle goes for your eyes!", True, pygame.Color("red"))
     if kind == 'nodam':
         text[0] = log.render("The " + thing + " hits you but you don't take any damage", True, pygame.Color("white"))
     if kind == 'magi':
@@ -251,12 +254,18 @@ def updatelog(kind, thing = 0, value = 0):  #55 characters is the max string len
         text[0] = log.render("You recovered from the poison", True, pygame.Color("purple"))
     if kind == 'paraheal':
         text[0] = log.render("You recovered from the paralysis", True, pygame.Color("red"))
+    if kind == 'psn':
+        text[0] = log.render("The poison damages you", True, pygame.Color("purple"))
+    if kind == 'para':
+        text[0] = log.render("You can't move", True, pygame.Color("red"))
     if kind == 'level':
         text[0] = log.render("You are now level " + thing, True, pygame.Color("green"))
     if kind == 'stat':
         text[0] = log.render("Your " + thing + " stat went up by " + value, True, pygame.Color("green"))
     if kind == 'dead':
         text[0] = log.render("You died", True, pygame.Color("red"))
+    if kind == 'win':
+        text[0] = log.render("Congratulations! You beat the game!", True, pygame.Color("green"))
     if kind == 'kill':
         if value == 'sword':
             if thing == "Goblin":
@@ -289,50 +298,50 @@ def updatelog(kind, thing = 0, value = 0):  #55 characters is the max string len
             if thing == "Rat":
                 text[0] = log.render("You turn the Rat into a raw shish kabob", True, pygame.Color("blue"))
             if thing == "Snake":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You skin the Snake alive", True, pygame.Color("blue"))
             if thing == "Guinea Pig":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You disembowel the Guinea Pig", True, pygame.Color("blue"))
             if thing == "Megabat":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You jam the knife into its vital organs", True, pygame.Color("blue"))
             if thing == "Mammoth":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You cut its legs off", True, pygame.Color("blue"))
             if thing == "Monster":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You cut off its stupid gloves", True, pygame.Color("blue"))
             if thing == "Troll":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You poke out its eye", True, pygame.Color("blue"))
             if thing == "Knight":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You slit its throat", True, pygame.Color("blue"))
             if thing == "Ghost":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You cut its sheet up", True, pygame.Color("blue"))
             if thing == "Skeleton":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You cut off its chain", True, pygame.Color("blue"))
             if thing == "Little-Eagle":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You stab the bird in the foot", True, pygame.Color("blue"))
         if value == 'axe':
             if thing == "Goblin":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You split it down the middle", True, pygame.Color("blue"))
             if thing == "Rat":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You give it a nice axe hair-cut", True, pygame.Color("blue"))
             if thing == "Snake":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You chop it up like you would a carrot", True, pygame.Color("blue"))
             if thing == "Guinea Pig":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You cut off its 14 toes", True, pygame.Color("blue"))
             if thing == "Megabat":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You brake the Bat", True, pygame.Color("blue"))
             if thing == "Mammoth":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You cut it open, but don't drink its blood", True, pygame.Color("blue"))
             if thing == "Monster":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You chop the Monster into 8 pieces", True, pygame.Color("blue"))
             if thing == "Troll":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You chop the Monster into 4 pieces", True, pygame.Color("blue"))
             if thing == "Knight":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You bash its skull into two", True, pygame.Color("blue"))
             if thing == "Ghost":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You banish the Ghost", True, pygame.Color("blue"))
             if thing == "Skeleton":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You knock the Skeleton's remaining teeth out", True, pygame.Color("blue"))
             if thing == "Little-Eagle":
-                text[0] = log.render("", True, pygame.Color("blue"))
+                text[0] = log.render("You cut it open and drink its blood", True, pygame.Color("blue"))
     
     screen.blit(text[0], newlog)
 
@@ -344,7 +353,7 @@ def levelup(lvlxp):
         updatelog('level', level + 1)
         stats = ["HP", "Attack", "Defence"]
 
-        rn = random.randint(1, 3)
+        rn = random.randint(2, 4)
         maxhp += rn
         updatelog('stat', "HP", rn)
         rn = random.randint(1, 2)
@@ -610,9 +619,9 @@ class Enemy():
                 if rnstatus <= 10:
                     psn = True
             if self.name == "Snake":
-                if rnstatus <= 10:
+                if rnstatus <= 5:
                     psn = True
-                if rnstatus > 10 and rnstatus <= 20:
+                if rnstatus > 5 and rnstatus <= 10:
                     para = True
                     paramax = 10
             if self.name == "Megabat":
@@ -879,8 +888,17 @@ class Enemy():
                 return direct
 
     def dropitem(self):
+        if self.name == "King Pig":
+            return getitem(self.enx, self.eny, 0, "Axe of Guinea")
+        if random.randint(1, 100) <= 3:
+            if self.name == "Goblin":
+                return getitem(self.enx, self.eny, 0, "Goblin's Dagger")
+            if self.name == "Knight":
+                return getitem(self.enx, self.eny, 0, "Knight's Sword")
+            if self.name == "Guinea Pig":
+                return getitem(self.enx, self.eny, 0, "Axe of Guinea")
         if random.randint(0, 100) <= 12:
-            rn = random.randint(0, 100)
+            rn = random.randint(1, 100)
             if floor < 5:
                 if rn <= 90:
                     return getitem(self.enx, self.eny, 0, "Weak Potion")
@@ -914,7 +932,7 @@ class Enemy():
                     return getitem(self.enx, self.eny, 0, "Invincibility Potion")
 
     def die(self):
-        global xp, foremap
+        global xp, foremap, backmap
         self.drop = 0
         if self.hp <= 0:
             self.dead = True
@@ -926,6 +944,8 @@ class Enemy():
                 self.drop = self.dropitem()
             if self.drop == 0 or self.drop == None:
                 foremap[self.enx][self.eny] = backmap[self.enx][self.eny]
+            if weapon != "fist":
+                updatelog('kill', self.name, weapon.weaptype)
             self.diedin.append((room, floor, self.spawnx, self.spawny))
             self.rmfl = (0, 0)
             if self.boss == True:
@@ -1030,63 +1050,64 @@ Enemy("Monster", 10, 18, 18, 5, 6, monster),
 Enemy("Monster", 10, 18, 18, 5, 6, monster),
 Enemy("Monster", 10, 18, 18, 5, 6, monster),
 Enemy("Monster", 10, 18, 18, 5, 6, monster),
-Enemy("Troll", 30, 25, 13, 13, 10, troll), #70
-Enemy("Troll", 30, 25, 13, 13, 10, troll),
-Enemy("Troll", 30, 25, 13, 13, 10, troll),
-Enemy("Troll", 30, 25, 13, 13, 10, troll),
-Enemy("Troll", 30, 25, 13, 13, 10, troll),
-Enemy("Troll", 30, 25, 13, 13, 10, troll),
-Enemy("Troll", 30, 25, 13, 13, 10, troll),
-Enemy("Troll", 30, 25, 13, 13, 10, troll),
-Enemy("Troll", 30, 25, 13, 13, 10, troll),
-Enemy("Troll", 30, 25, 13, 13, 10, troll),
+Enemy("Troll", 30, 25, 13, 13, 10, troll2), #70
+Enemy("Troll", 30, 25, 13, 13, 10, troll2),
+Enemy("Troll", 30, 25, 13, 13, 10, troll2),
+Enemy("Troll", 30, 25, 13, 13, 10, troll2),
+Enemy("Troll", 30, 25, 13, 13, 10, troll2),
+Enemy("Troll", 30, 25, 13, 13, 10, troll2),
+Enemy("Troll", 30, 25, 13, 13, 10, troll2),
+Enemy("Troll", 30, 25, 13, 13, 10, troll2),
+Enemy("Troll", 30, 25, 13, 13, 10, troll2),
+Enemy("Troll", 30, 25, 13, 13, 10, troll2),
 #---Floors 11-15---#    I can't believe how I actually went through with this crap
-Enemy("Knight", 13, 20, 18, 6, 10, knight), #80
-Enemy("Knight", 13, 20, 18, 6, 10, knight),
-Enemy("Knight", 13, 20, 18, 6, 10, knight),
-Enemy("Knight", 13, 20, 18, 6, 10, knight),
-Enemy("Knight", 13, 20, 18, 6, 10, knight),
-Enemy("Knight", 13, 20, 18, 6, 10, knight),
-Enemy("Knight", 13, 20, 18, 6, 10, knight),
-Enemy("Knight", 13, 20, 18, 6, 10, knight),
-Enemy("Knight", 13, 20, 18, 6, 10, knight),
-Enemy("Knight", 13, 20, 18, 6, 10, knight),
-Enemy("Ghost", 8, 18, 20, 5, 8, ghost),  #90
-Enemy("Ghost", 8, 18, 20, 5, 8, ghost),
-Enemy("Ghost", 8, 18, 20, 5, 8, ghost),
-Enemy("Ghost", 8, 18, 20, 5, 8, ghost),
-Enemy("Ghost", 8, 18, 20, 5, 8, ghost),
-Enemy("Ghost", 8, 18, 20, 5, 8, ghost),
-Enemy("Ghost", 8, 18, 20, 5, 8, ghost),
-Enemy("Ghost", 8, 18, 20, 5, 8, ghost),
-Enemy("Ghost", 8, 18, 20, 5, 8, ghost),
-Enemy("Ghost", 8, 18, 20, 5, 8, ghost),
-Enemy("Skeleton", 15, 15, 18, 8, 10, skeleton), #100
-Enemy("Skeleton", 15, 15, 18, 8, 10, skeleton),
-Enemy("Skeleton", 15, 15, 18, 8, 10, skeleton),
-Enemy("Skeleton", 15, 15, 18, 8, 10, skeleton),
-Enemy("Skeleton", 15, 15, 18, 8, 10, skeleton),
-Enemy("Skeleton", 15, 15, 18, 8, 10, skeleton),
-Enemy("Skeleton", 15, 15, 18, 8, 10, skeleton),
-Enemy("Skeleton", 15, 15, 18, 8, 10, skeleton),
-Enemy("Skeleton", 15, 15, 18, 8, 10, skeleton),
-Enemy("Skeleton", 15, 15, 18, 8, 10, skeleton),
-Enemy("Little-Eagle", 15, 20, 15, 4, 6, littleeagle),   #110
-Enemy("Little-Eagle", 15, 20, 15, 4, 6, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 6, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 6, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 6, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 6, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 6, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 6, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 6, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 6, littleeagle)
+Enemy("Knight", 13, 20, 18, 6, 20, knight), #80
+Enemy("Knight", 13, 20, 18, 6, 20, knight),
+Enemy("Knight", 13, 20, 18, 6, 20, knight),
+Enemy("Knight", 13, 20, 18, 6, 20, knight),
+Enemy("Knight", 13, 20, 18, 6, 20, knight),
+Enemy("Knight", 13, 20, 18, 6, 20, knight),
+Enemy("Knight", 13, 20, 18, 6, 20, knight),
+Enemy("Knight", 13, 20, 18, 6, 20, knight),
+Enemy("Knight", 13, 20, 18, 6, 20, knight),
+Enemy("Knight", 13, 20, 18, 6, 20, knight),
+Enemy("Ghost", 14, 18, 20, 5, 16, ghost),  #90
+Enemy("Ghost", 14, 18, 20, 5, 16, ghost),
+Enemy("Ghost", 14, 18, 20, 5, 16, ghost),
+Enemy("Ghost", 14, 18, 20, 5, 16, ghost),
+Enemy("Ghost", 14, 18, 20, 5, 16, ghost),
+Enemy("Ghost", 14, 18, 20, 5, 16, ghost),
+Enemy("Ghost", 14, 18, 20, 5, 16, ghost),
+Enemy("Ghost", 14, 18, 20, 5, 16, ghost),
+Enemy("Ghost", 14, 18, 20, 5, 16, ghost),
+Enemy("Ghost", 14, 18, 20, 5, 16, ghost),
+Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2), #100
+Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
+Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
+Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
+Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
+Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
+Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
+Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
+Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
+Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
+Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),   #110
+Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle)
 ]
 
 bosses = [
 Enemy("Troll", 30, 25, 13, 13, 30, troll),
 Enemy("Skeleton", 75, 15, 5, 8, 80, skeleton),
-Enemy("Big-Eagle", 200, 20, 6, 10, 250, bigeagle)
+Enemy("Big-Eagle", 200, 20, 6, 10, 0, bigeagle),
+Enemy("King Pig", 250, 15, 5, 20, 300, guinea)
 ]
 
 #good luck figuring what this does
@@ -1156,8 +1177,8 @@ def getrandmon():
         if rn > 75:
             return 90
 
-def getmon(x, y):
-    
+def getmon(x, y, kind = 0):
+            
     for i in range(len(enemies)):
         for j in range(len(enemies[i].diedin)):
             if enemies[i].diedin[j] == (room, floor, x, y):
@@ -1173,6 +1194,17 @@ def getmon(x, y):
                 enemies[i].spawnx, enemies[i].spawny = x, y
                 updatelog('view', enemies[i].name)
                 return enemies[i].image
+
+    if kind != 0:
+        if enemies[kind].dead == False and enemies[kind].currentloc == ((0, 0), (0, 0)):
+            enemies[kind].enx = x
+            enemies[kind].eny = y
+            enemies[kind].spawnx, enemies[kind].spawny = x, y
+            enemies[kind].loaded = True
+            enemies[kind].rmfl = (room, floor)
+            enemies[kind].currentloc = ((room, floor), (x, y))
+            updatelog('view', enemies[kind].name)
+            return enemies[kind].image
 
     #gets a random new monster
     temp = 0
@@ -1202,13 +1234,15 @@ def placeboss(fl, x, y):
         num = 0
     if fl == 10:
         num = 1
-    if fl == 15:
+    if fl == 15 and room != 9:
         num = 2
         if finalset == True:
             return ground
         bosses[num].stage = 1
         bosses[num].enroom = room
         finalset = True
+    if fl == 15 and room == 9:
+        num = 3
     if bosses[num].hp > 1:
         bosses[num].enx = x
         bosses[num].eny = y
@@ -1249,7 +1283,7 @@ def getitem(x, y, kind, bagkind = 0):
 
     weakpot = Item("Weak Potion", 'HEAL', 5, bag)
     pot = Item("Potion", 'HEAL', 20, bag)
-    strpot = Item("Strong Potion", 'HEAL', 30, bag)
+    strpot = Item("Strong Potion", 'HEAL', 40, bag)
     ant = Item("Antidote", 'PSN', 0, bag)
     paraheal = Item("Paralysis Heal", 'PARA', 0, bag)
     healall = Item("Heal All", 'ALL', 0, bag)
@@ -1278,6 +1312,12 @@ def getitem(x, y, kind, bagkind = 0):
             tempitem = healall
         if bagkind == "Flash Bomb":
             tempitem = flashbomb
+        if bagkind == "Goblin's Dagger":
+            tempitem = daggersp
+        if bagkind == "Knight's Sword":
+            tempitem = swordsp
+        if bagkind == "Axe of Guinea":
+            tempitem = axesp
         tempitem.pos = (x, y)
         tempitem.rmfl = (room, floor)
         additem(items, tempitem)
@@ -1536,9 +1576,13 @@ def attack(enemy, weapon):
             updatelog('miss', enemy.name)
             return enemy.hp
 
+def loadmusic(num):
+    pygame.mixer.music.load('music/BGM' + str(num) + '.ogg')
+    pygame.mixer.music.play(-1)
+
 #load in another map file and display it on the screen
 def loadmap(direct):
-    global foremap, backmap, plx, ply, floor, room, upstrpos, downstrpos, keypos, loadedroom, wall, ground, player, bag, treasure, key, troll, skeleton, flash, flashcount, flashmax, door, bossstart
+    global foremap, backmap, plx, ply, floor, room, upstrpos, downstrpos, keypos, loadedroom, wall, ground, player, bag, treasure, key, flash, flashcount, flashmax, door, bossstart
     upstrpos = (0, 0)
     downstrpos = (0, 0)
     keypos = (0, 0)
@@ -1566,11 +1610,15 @@ def loadmap(direct):
     if direct == 'STAIR_UP':
         upstrpos = (0, 0)
         floor -= 1
+        if floor == 5 or floor == 10:
+            pygame.mixer.music.fadeout(2000)
         for i in range(len(enemies)):
             enemies[i].recycle(True)
     if direct == 'STAIR_DOWN':
         downstrpos = (0, 0)
         floor += 1
+        if floor == 6 or floor == 11:
+            pygame.mixer.music.fadeout(2000)
         for i in range(len(enemies)):
             enemies[i].recycle(True)
     if multiroomboss == True and room == bosses[2].enroom:
@@ -1599,7 +1647,6 @@ def loadmap(direct):
         treasure = pygame.image.load('graphics/treasure2.png').convert()
         key = pygame.image.load('graphics/key2.png').convert()
         door = pygame.image.load('graphics/door2.png').convert()
-        troll = pygame.image.load('graphics/troll2.png').convert()
     if floor > 10:
         wall = pygame.image.load('graphics/wall.png').convert() #wall3 not done yet
         ground = pygame.image.load('graphics/ground3.png').convert()
@@ -1607,7 +1654,6 @@ def loadmap(direct):
         bag = pygame.image.load('graphics/bag3.png').convert()
         treasure = pygame.image.load('graphics/treasure3.png').convert()
         key = pygame.image.load('graphics/key3.png').convert()
-        skeleton = pygame.image.load('graphics/skeleton2.png').convert()
 
     newmap = "rooms/fl" + str(floor) + "r" + str(room) + ".txt"
     newmap = open(newmap, 'r')
@@ -1618,6 +1664,7 @@ def loadmap(direct):
         for j in range(10):
             backmap[i][j] = newmap[i * 10 + j]
 
+    count = 30
     for i in range(10):
         for j in range(10):
 
@@ -1635,9 +1682,13 @@ def loadmap(direct):
             if backmap[i][j] == '%':
                 foremap[i][j] = statue
                 backmap[i][j] = statue
-            if backmap[i][j] == 'E':
+            if backmap[i][j] == 'E' and floor != 15:
                 foremap[i][j] = getmon(i, j)
                 backmap[i][j] = ground
+            if backmap[i][j] == 'E' and floor == 15:
+                foremap[i][j] = getmon(i, j, count)
+                backmap[i][j] = ground
+                count += 1
             if backmap[i][j] == 'Q':
                 foremap[i][j] = placeboss(floor, i, j)
                 backmap[i][j] = ground
@@ -1819,6 +1870,33 @@ def move(x):
 
     foremap[plx][ply] = player
 
+def winner():
+    for k in range(255, 0, -1):
+        screen.fill(pygame.Color("black"), (0, 0, 500, 500))
+        for i in range(10):
+            for j in range(10):
+                foremap[i][j].convert_alpha()
+                foremap[i][j].set_alpha(k)
+                screen.blit(foremap[i][j], (j * 50, i * 50))
+        pygame.display.update()
+        pygame.time.wait(10)
+    screen.fill(pygame.Color("black"), (0, 0, 500, 500))
+    pygame.time.wait(2000)
+    screen.blit(big.render("YOU WIN", True, pygame.Color("green")), (150, 200))
+    updatelog('win')
+    pygame.display.update()
+    pygame.time.wait(3000)
+    screen.fill(pygame.Color("black"), (0, 0, 500, 500))
+    screen.blit(med.render("Programming", True, pygame.Color("white")), (155, 50))
+    screen.blit(med.render("Conner Dreher", True, pygame.Color("white")), (135, 100))
+    screen.blit(med.render("Everything Else", True, pygame.Color("white")), (130, 200))
+    screen.blit(med.render("Dan Oniones", True, pygame.Color("white")), (160, 250))
+    pygame.display.update()
+    pygame.time.wait(3000)
+    pygame.event.clear()
+    pygame.event.wait()
+    sys.exit()
+
 #main game loop     this is by far the most messy place in here
 while True:
     event = pygame.event.wait()
@@ -1842,11 +1920,18 @@ while True:
         if event.key == pygame.K_COMMA:
             pickup()
         if event.key == pygame.K_a:
-            floor = 11
-            room = 0
+            floor = 5
+            room = 2
         if event.key == pygame.K_r:
             xp += 10
-        
+
+    if pygame.mixer.music.get_busy() == False:
+        if floor <= 5:
+            loadmusic(1)
+        if floor > 5 and floor <= 10:
+            loadmusic(2)
+        if floor > 10:
+            loadmusic(3)
 
     if flash == True and flashmax == 0:
         flashtemp = 0
@@ -1884,7 +1969,7 @@ while True:
             speedturn = 0
             for i in range(len(enemies)):
                 enemies[i].die()
-                if enemies[i].name == "Ghost" and enemies[i].hp <= 3  and enemies[i].dead == False and enemies[i].loaded == True:
+                if enemies[i].name == "Ghost" and enemies[i].hp <= 6  and enemies[i].dead == False and enemies[i].loaded == True:
                     tempskelgo = skelgo
                     skelgo = enemies[i].forskellyonly(tempskelgo)
                     if enemies[i].invcount == 0:
@@ -1977,11 +2062,13 @@ while True:
             screen.blit(log.render("PSN", True, pygame.Color("purple")), (325, 500))
             if psnstep % 10 == 0:
                 plhp -= 1
+                updatelog('psn')
             if psnstep >= 100:
                 psn = False
             psnstep += 1
         if para == True:
             screen.blit(log.render("PARA", True, pygame.Color("red")), (355, 500))
+            updatelog('para')
             paracount += 1
             if paracount >= paramax:
                 para = False
@@ -2010,6 +2097,8 @@ while True:
             pygame.time.wait(1000)
             event = pygame.event.wait()
             sys.exit()
+        if bosses[2].dead == True:
+            winner()
 
         foremap[0][0] = wall
         backmap[0][0] = wall
