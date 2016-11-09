@@ -136,8 +136,8 @@ screen.blit(log.render("Att: " + str(platt), True, pygame.Color("white")), (160,
 screen.blit(log.render("Def: " + str(armor), True, pygame.Color("white")), (230, 500))
 
 pygame.mixer.init()
-pygame.mixer.music.load('music/BGM1.ogg')
-pygame.mixer.music.play(-1)
+bgm = pygame.mixer.Sound('music/BGM1.ogg')
+bgm.play(-1)
 
 skelgo = 'UP'
 multiroomboss = False
@@ -244,10 +244,20 @@ def updatelog(kind, thing = 0, value = 0):  #55 characters is the max string len
         text[0] = log.render("You pick up the " + thing, True, pygame.Color("white"))
     if kind == 'drop':
         text[0] = log.render("You dropped the " + thing, True, pygame.Color("white"))
+    if kind == 'eqarmor':
+        text[0] = log.render("You put on the " + thing, True, pygame.Color("white"))
+    if kind == 'unarmor':
+        text[0] = log.render("You take off the " + thing, True, pygame.Color("white"))
+    if kind == 'eqweap':
+        text[0] = log.render("You wield the " + thing, True, pygame.Color("white"))
+    if kind == 'unweap':
+        text[0] = log.render("You put away the " + thing, True, pygame.Color("white"))
     if kind == 'wrongkey':
         text[0] = log.render("The key doesn't seem to fit", True, pygame.Color("white"))
     if kind == 'nokey':
         text[0] = log.render("You need a key to open this", True, pygame.Color("white"))
+    if kind == 'bossdoor':
+        text[0] = log.render("All the doors close", True, pygame.Color("white"))
     if kind == 'heal':
         text[0] = log.render("You healed yourself for " + thing + " damage", True, pygame.Color("yellow"))
     if kind == 'ant':
@@ -333,7 +343,7 @@ def updatelog(kind, thing = 0, value = 0):  #55 characters is the max string len
             if thing == "Monster":
                 text[0] = log.render("You chop the Monster into 8 pieces", True, pygame.Color("blue"))
             if thing == "Troll":
-                text[0] = log.render("You chop the Monster into 4 pieces", True, pygame.Color("blue"))
+                text[0] = log.render("You chop the Troll into 4 pieces", True, pygame.Color("blue"))
             if thing == "Knight":
                 text[0] = log.render("You bash its skull into two", True, pygame.Color("blue"))
             if thing == "Ghost":
@@ -462,19 +472,23 @@ class Item():
                 self.equip = True
                 weapon = self
                 screen.blit(log.render(str(platt + weapon.value), True, pygame.Color("white")), (200, 500))
+                updatelog('eqweap', self.name)
             elif self.equip == True:
                 self.equip = False
                 weapon = "fist"
                 screen.blit(log.render(str(platt), True, pygame.Color("white")), (200, 500))
+                updatelog('unweap', self.name)
         if self.kind == 'ARM':
             if self.equip == False and armoron == False:
                 self.equip = True
                 armoron = True
                 armor += self.value
+                updatelog('eqarmor', self.name)
             elif self.equip == True:
                 self.equip = False
                 armoron = False
                 armor -= self.value
+                updatelog('unarmor', self.name)
             screen.fill(pygame.Color("black"), (269, 500, 20, 15))
             screen.blit(log.render(str(armor), True, pygame.Color("white")), (270, 500))
         if self.kind == 'HEAL' and self.ininv == True:
@@ -1439,6 +1453,10 @@ def getitem(x, y, kind, bagkind = 0):
     tempitem.pos = (x, y)
     tempitem.rmfl = (room, floor)
     additem(items, tempitem)
+    if tempitem.image == treasure:
+        updatelog('view', "treasure chest")
+    elif tempitem.image == bag:
+        updatelog('view', "bag")
     return tempitem.image
 
 def keystatus():
@@ -1577,8 +1595,13 @@ def attack(enemy, weapon):
             return enemy.hp
 
 def loadmusic(num):
-    pygame.mixer.music.load('music/BGM' + str(num) + '.ogg')
-    pygame.mixer.music.play(-1)
+    global bgm
+    pygame.time.wait(500)
+    screen.fill(pygame.Color("black"), (0, 0, 500, 500))
+    pygame.display.update()
+    bgm = pygame.mixer.Sound('music/BGM' + str(num) + '.ogg')
+    bgm.play(-1, 0, 1000)
+    pygame.event.clear()
 
 #load in another map file and display it on the screen
 def loadmap(direct):
@@ -1610,15 +1633,23 @@ def loadmap(direct):
     if direct == 'STAIR_UP':
         upstrpos = (0, 0)
         floor -= 1
-        if floor == 5 or floor == 10:
-            pygame.mixer.music.fadeout(2000)
+        if floor == 5:
+            bgm.fadeout(1000)
+            loadmusic(1)
+        if floor == 10:
+            bgm.fadeout(1000)
+            loadmusic(2)
         for i in range(len(enemies)):
             enemies[i].recycle(True)
     if direct == 'STAIR_DOWN':
         downstrpos = (0, 0)
         floor += 1
-        if floor == 6 or floor == 11:
-            pygame.mixer.music.fadeout(2000)
+        if floor == 6:
+            bgm.fadeout(1000)
+            loadmusic(2)
+        if floor == 11:
+            bgm.fadeout(1000)
+            loadmusic(3)
         for i in range(len(enemies)):
             enemies[i].recycle(True)
     if multiroomboss == True and room == bosses[2].enroom:
@@ -1626,10 +1657,13 @@ def loadmap(direct):
 
     if (floor, room) == (5, 2) and direct == 'RIGHT' and bosses[0].dead == False:
         ply = 1
+        updatelog('bossdoor')
     if (floor, room) == (10, 1) and direct == 'UP' and bosses[1].dead == False:
         plx = 8
+        updatelog('bossdoor')
     if (floor, room) == (15, 5) and bossstart == False:
         plx = 8
+        updatelog('bossdoor')
         bossstart = True
 
     if floor <= 5:
@@ -1700,6 +1734,7 @@ def loadmap(direct):
                     foremap[i][j] = key
                     backmap[i][j] = key
                     keypos = (i, j)
+                    updatelog('view', "key")
                 else:
                     foremap[i][j] = ground
                     backmap[i][j] = ground
@@ -1707,6 +1742,7 @@ def loadmap(direct):
                 for k in range(len(dooropen)):
                     if dooropen[k] != (room, floor):
                         foremap[i][j] = door
+                        updatelog('view', "locked door")
                     else:
                         foremap[i][j] = ground
                         break
@@ -1735,10 +1771,12 @@ def loadmap(direct):
                 foremap[i][j] = upstair
                 backmap[i][j] = upstair
                 upstrpos = (i, j)
+                updatelog('view', "staircase")
             if backmap[i][j] == '>':
                 foremap[i][j] = downstair
                 backmap[i][j] = downstair
                 downstrpos = (i, j)
+                updatelog('view', "staircase")
     if (room, floor) == (1, 10):
         downstrpos = (2, 4)
 
@@ -1925,7 +1963,7 @@ while True:
         if event.key == pygame.K_r:
             xp += 10
 
-    if pygame.mixer.music.get_busy() == False:
+    if pygame.mixer.get_busy() == False:
         if floor <= 5:
             loadmusic(1)
         if floor > 5 and floor <= 10:
