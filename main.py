@@ -132,8 +132,8 @@ backmap = [[0 for i in range(10)] for j in range(10)] #creates an empty 2D array
 foremap = [[0 for i in range(10)] for j in range(10)]
 screen.blit(log.render("HP: " + str(plhp) + "/" + str(maxhp), True, pygame.Color("white")), (0, 500))
 screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (80, 500))
-screen.blit(log.render("Att: " + str(platt), True, pygame.Color("white")), (160, 500))
-screen.blit(log.render("Def: " + str(armor), True, pygame.Color("white")), (230, 500))
+screen.blit(log.render("Att: " + str(platt), True, pygame.Color("white")), (190, 500))
+screen.blit(log.render("Def: " + str(armor), True, pygame.Color("white")), (260, 500))
 
 pygame.mixer.init()
 bgm = pygame.mixer.Sound('music/BGM1.ogg')
@@ -264,10 +264,22 @@ def updatelog(kind, thing = 0, value = 0):  #55 characters is the max string len
         text[0] = log.render("You recovered from the poison", True, pygame.Color("purple"))
     if kind == 'paraheal':
         text[0] = log.render("You recovered from the paralysis", True, pygame.Color("red"))
+    if kind == 'psnheal':
+        text[0] = log.render("The poison died down", True, pygame.Color("purple"))
+    if kind == 'paraheal2':
+        text[0] = log.render("The paralysis wore off", True, pygame.Color("red"))
     if kind == 'psn':
         text[0] = log.render("The poison damages you", True, pygame.Color("purple"))
+    if kind == 'psninit':
+        text[0] = log.render("You have been poisoned!", True, pygame.Color("purple"))
     if kind == 'para':
         text[0] = log.render("You can't move", True, pygame.Color("red"))
+    if kind == 'parainit':
+        text[0] = log.render("You got paralyzed!", True, pygame.Color("red"))
+    if kind == 'flash':
+        text[0] = log.render("The room lights up in a blinding flash!", True, pygame.Color("white"))
+    if kind == 'flash2':
+        text[0] = log.render("The Enemies are stunned and cannot move!", True, pygame.Color("white"))
     if kind == 'level':
         text[0] = log.render("You are now level " + thing, True, pygame.Color("green"))
     if kind == 'stat':
@@ -467,16 +479,16 @@ class Item():
     def use(self):
         global weapon, plhp, maxhp, armor, armoron, psn, para
         if self.kind == 'WEAP':
-            screen.fill(pygame.Color("black"), (199, 500, 20, 15))
+            screen.fill(pygame.Color("black"), (229, 500, 20, 15))
             if self.equip == False and weapon == "fist":
                 self.equip = True
                 weapon = self
-                screen.blit(log.render(str(platt + weapon.value), True, pygame.Color("white")), (200, 500))
+                screen.blit(log.render(str(platt + weapon.value), True, pygame.Color("white")), (230, 500))
                 updatelog('eqweap', self.name)
             elif self.equip == True:
                 self.equip = False
                 weapon = "fist"
-                screen.blit(log.render(str(platt), True, pygame.Color("white")), (200, 500))
+                screen.blit(log.render(str(platt), True, pygame.Color("white")), (230, 500))
                 updatelog('unweap', self.name)
         if self.kind == 'ARM':
             if self.equip == False and armoron == False:
@@ -489,8 +501,8 @@ class Item():
                 armoron = False
                 armor -= self.value
                 updatelog('unarmor', self.name)
-            screen.fill(pygame.Color("black"), (269, 500, 20, 15))
-            screen.blit(log.render(str(armor), True, pygame.Color("white")), (270, 500))
+            screen.fill(pygame.Color("black"), (299, 500, 20, 15))
+            screen.blit(log.render(str(armor), True, pygame.Color("white")), (300, 500))
         if self.kind == 'HEAL' and self.ininv == True:
             if self.value + plhp > maxhp:
                 updatelog('heal', maxhp - plhp)
@@ -541,6 +553,8 @@ class Item():
             flash = True
             flashcount = 0
             self.useitem()
+            updatelog('flash')
+            updatelog('flash2')
             return True
 
 items = [Item("Potion", 'HEAL', 5, bag)]
@@ -625,33 +639,41 @@ class Enemy():
             elif dam == 0:
                 updatelog('enmiss', self.name)
 
-            rnstatus = random.randint(1, 100)
-            if spec == "para":
-                para = True
-                paramax = random.randint(1, 10)
-            if self.name == "Rat":
-                if rnstatus <= 10:
-                    psn = True
-            if self.name == "Snake":
-                if rnstatus <= 5:
-                    psn = True
-                if rnstatus > 5 and rnstatus <= 10:
+            if dam != 0:
+                rnstatus = random.randint(1, 100)
+                if spec == "para":
                     para = True
-                    paramax = 10
-            if self.name == "Megabat":
-                if rnstatus <= 20:
-                    psn = True
-            if self.name == "Monster":
-                if rnstatus <= 20:
-                    para = True
-                    paramax = 12
-            if self.name == "Skeleton":
-                if rnstatus <= 20:
-                    para = True
-                    paramax = 8
-            if self.name == "Big-Eagle" and self.stage == 3:
-                if random.randint(1, 100) <= 10:
-                    self.tele()
+                    paramax = random.randint(1, 10)
+                    updatelog('parainit')
+                if self.name == "Rat":
+                    if rnstatus <= 10:
+                        psn = True
+                        updatelog('psninit')
+                if self.name == "Snake":
+                    if rnstatus <= 5:
+                        psn = True
+                        updatelog('psninit')
+                    if rnstatus > 5 and rnstatus <= 10:
+                        para = True
+                        paramax = 10
+                        updatelog('parainit')
+                if self.name == "Megabat":
+                    if rnstatus <= 20:
+                        psn = True
+                        updatelog('psninit')
+                if self.name == "Monster":
+                    if rnstatus <= 20:
+                        para = True
+                        paramax = 12
+                        updatelog('parainit')
+                if self.name == "Skeleton":
+                    if rnstatus <= 20:
+                        para = True
+                        paramax = 8
+                        updatelog('parainit')
+                if self.name == "Big-Eagle" and self.stage == 3:
+                    if random.randint(1, 100) <= 10:
+                        self.tele()
             return hp - dam
         elif self.loaded == True and nodam == True:
             updatelog('nodam', self.name)
@@ -904,14 +926,14 @@ class Enemy():
     def dropitem(self):
         if self.name == "King Pig":
             return getitem(self.enx, self.eny, 0, "Axe of Guinea")
-        if random.randint(1, 100) <= 3:
+        if random.randint(1, 100) <= 2:
             if self.name == "Goblin":
                 return getitem(self.enx, self.eny, 0, "Goblin's Dagger")
             if self.name == "Knight":
                 return getitem(self.enx, self.eny, 0, "Knight's Sword")
             if self.name == "Guinea Pig":
                 return getitem(self.enx, self.eny, 0, "Axe of Guinea")
-        if random.randint(0, 100) <= 12:
+        if random.randint(0, 100) <= 10:
             rn = random.randint(1, 100)
             if floor < 5:
                 if rn <= 90:
@@ -1095,32 +1117,32 @@ Enemy("Ghost", 14, 18, 20, 5, 16, ghost),
 Enemy("Ghost", 14, 18, 20, 5, 16, ghost),
 Enemy("Ghost", 14, 18, 20, 5, 16, ghost),
 Enemy("Ghost", 14, 18, 20, 5, 16, ghost),
-Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2), #100
-Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
-Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
-Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
-Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
-Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
-Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
-Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
-Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
-Enemy("Skeleton", 15, 15, 18, 8, 20, skeleton2),
-Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),   #110
-Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle),
-Enemy("Little-Eagle", 15, 20, 15, 4, 18, littleeagle)
+Enemy("Skeleton", 50, 25, 5, 4, 20, skeleton2), #100
+Enemy("Skeleton", 50, 25, 5, 4, 20, skeleton2),
+Enemy("Skeleton", 50, 25, 5, 4, 20, skeleton2),
+Enemy("Skeleton", 50, 25, 5, 4, 20, skeleton2),
+Enemy("Skeleton", 50, 25, 5, 4, 20, skeleton2),
+Enemy("Skeleton", 50, 25, 5, 4, 20, skeleton2),
+Enemy("Skeleton", 50, 25, 5, 4, 20, skeleton2),
+Enemy("Skeleton", 50, 25, 5, 4, 20, skeleton2),
+Enemy("Skeleton", 50, 25, 5, 4, 20, skeleton2),
+Enemy("Skeleton", 50, 25, 5, 4, 20, skeleton2),
+Enemy("Little-Eagle", 15, 30, 15, 4, 18, littleeagle),   #110
+Enemy("Little-Eagle", 15, 30, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 30, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 30, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 30, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 30, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 30, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 30, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 30, 15, 4, 18, littleeagle),
+Enemy("Little-Eagle", 15, 30, 15, 4, 18, littleeagle)
 ]
 
 bosses = [
 Enemy("Troll", 30, 25, 13, 13, 30, troll),
-Enemy("Skeleton", 75, 15, 5, 8, 80, skeleton),
-Enemy("Big-Eagle", 200, 20, 6, 10, 0, bigeagle),
+Enemy("Skeleton", 75, 25, 5, 4, 80, skeleton),
+Enemy("Big-Eagle", 200, 30, 6, 10, 0, bigeagle),
 Enemy("King Pig", 250, 15, 5, 20, 300, guinea)
 ]
 
@@ -1436,7 +1458,7 @@ def getitem(x, y, kind, bagkind = 0):
             if rn > 75 and rn <= 85:
                 tempitem = healall
             if rn > 85:
-                tempitem = weakpot
+                tempitem = pot
         if floor >= 10:
             if rn <= 50:
                 tempitem = strpot
@@ -1453,10 +1475,6 @@ def getitem(x, y, kind, bagkind = 0):
     tempitem.pos = (x, y)
     tempitem.rmfl = (room, floor)
     additem(items, tempitem)
-    if tempitem.image == treasure:
-        updatelog('view', "treasure chest")
-    elif tempitem.image == bag:
-        updatelog('view', "bag")
     return tempitem.image
 
 def keystatus():
@@ -1515,8 +1533,9 @@ def openinv(itemslist):
         screen.blit(textslash, (195, 25))
         screen.blit(textheal, (203, 25))
         screen.blit(textdam, (245, 25))
-        invitems = iteminv(itemslist)
+        tempinvitems = iteminv(itemslist)
         itemslist = restorelistpos(itemslist)
+        invitems = sorted(tempinvitems, key=lambda tempinvitems: tempinvitems.weaptype, reverse=True)
 
         if invitems != None:
             j = 0
@@ -1742,7 +1761,6 @@ def loadmap(direct):
                 for k in range(len(dooropen)):
                     if dooropen[k] != (room, floor):
                         foremap[i][j] = door
-                        updatelog('view', "locked door")
                     else:
                         foremap[i][j] = ground
                         break
@@ -1754,6 +1772,7 @@ def loadmap(direct):
                         tracker += 1
                 if tracker == 0:
                     foremap[i][j] = getitem(i, j, 'T')
+                    updatelog('view', "treasure chest")
                 else:
                     foremap[i][j] = ground
                 backmap[i][j] = foremap[i][j]
@@ -1764,6 +1783,7 @@ def loadmap(direct):
                         tracker += 1
                 if tracker == 0:
                     foremap[i][j] = getitem(i, j, 'B')
+                    updatelog('view', "bag")
                 else:
                     foremap[i][j] = ground
                 backmap[i][j] = foremap[i][j]
@@ -1959,7 +1979,7 @@ while True:
             pickup()
         if event.key == pygame.K_a:
             floor = 5
-            room = 2
+            room = 0
         if event.key == pygame.K_r:
             xp += 10
 
@@ -1984,7 +2004,7 @@ while True:
             speedcount = 0
             speedturn = 0
 
-        if floor == 15:
+        if floor == 15 and room != 7 and room != 8 and room != 9:
             multiroomboss = True
             if loadedroom == False:
                 littlespawn = False
@@ -2085,16 +2105,16 @@ while True:
         foremap[0][0] = wall
 
         screen.fill(pygame.Color("black"), (25, 500, 23, 15))
-        screen.fill(pygame.Color("black"), (75, 500, 80, 15))
-        screen.fill(pygame.Color("black"), (199, 500, 20, 15))
-        screen.fill(pygame.Color("black"), (269, 500, 20, 15))
+        screen.fill(pygame.Color("black"), (75, 500, 110, 15))
+        screen.fill(pygame.Color("black"), (229, 500, 20, 15))
+        screen.fill(pygame.Color("black"), (299, 500, 20, 15))
         screen.blit(log.render(str(plhp), True, pygame.Color("white")), (32, 500)) #the weird number is used just to keep the value in the same place
         screen.blit(log.render("XP: " + str(xp) + "/" + str(nextlvl[level]), True, pygame.Color("white")), (80, 500))
         if weapon == "fist":
-            screen.blit(log.render(str(platt), True, pygame.Color("white")), (200, 500))
+            screen.blit(log.render(str(platt), True, pygame.Color("white")), (230, 500))
         else:
-            screen.blit(log.render(str(platt + weapon.value), True, pygame.Color("white")), (200, 500))
-        screen.blit(log.render(str(armor), True, pygame.Color("white")), (270, 500))
+            screen.blit(log.render(str(platt + weapon.value), True, pygame.Color("white")), (230, 500))
+        screen.blit(log.render(str(armor), True, pygame.Color("white")), (300, 500))
 
         if psn == True:
             screen.blit(log.render("PSN", True, pygame.Color("purple")), (325, 500))
@@ -2103,6 +2123,7 @@ while True:
                 updatelog('psn')
             if psnstep >= 100:
                 psn = False
+                updatelog('psnheal')
             psnstep += 1
         if para == True:
             screen.blit(log.render("PARA", True, pygame.Color("red")), (355, 500))
@@ -2110,6 +2131,7 @@ while True:
             paracount += 1
             if paracount >= paramax:
                 para = False
+                updatelog('paraheal2')
                 paracount = 0
         if nodam == True:
             screen.blit(log.render("INV", True, pygame.Color("yellow")), (420, 500))
