@@ -6,7 +6,7 @@ import pdb
 pygame.init()
 
 screen = pygame.display.set_mode((500, 600))
-pygame.display.set_caption("PyRogue")
+pygame.display.set_caption("A Hot Tennessee Knight")
 pygame.event.set_allowed(None)
 pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN])
 pygame.font.init()
@@ -19,12 +19,16 @@ text = [log.render("", True, pygame.Color("black")) for i in range(5)] #for the 
 debug = False
 
 #Title Screen
-title = big.render("PyRogue", True, pygame.Color("green"))
+title1 = big.render("A Hot", True, pygame.Color("green"))
+title2 = big.render("Tennessee", True, pygame.Color("green"))
+title3 = big.render("Knight", True, pygame.Color("green"))
 options = [
 log.render("Start Game", True, pygame.Color("white")),
 log.render("Debug", True, pygame.Color("white"))
 ]
-screen.blit(title, (150, 150))
+screen.blit(title1, (50, 75))
+screen.blit(title2, (100, 125))
+screen.blit(title3, (225, 175))
 for i in range(len(options)):
     screen.blit(options[i], (150, 250 + (i * 25)))
 screen.blit(log.render(">", True, pygame.Color("white")), (140, 250))
@@ -73,6 +77,7 @@ troll = pygame.image.load('graphics/troll.png').convert()
 troll2 = pygame.image.load('graphics/troll2.png').convert()
 skeleton = pygame.image.load('graphics/skeleton.png').convert()
 skeleton2 = pygame.image.load('graphics/skeleton2.png').convert()
+kingpig = pygame.image.load('graphics/kingpig.png').convert()
 bigeagle = pygame.image.load('graphics/bigeagle.png').convert()
 treasure = pygame.image.load('graphics/treasure.png').convert()
 bag = pygame.image.load('graphics/bag.png').convert()
@@ -244,6 +249,8 @@ def updatelog(kind, thing = 0, value = 0):  #55 characters is the max string len
         text[0] = log.render("You pick up the " + thing, True, pygame.Color("white"))
     if kind == 'drop':
         text[0] = log.render("You dropped the " + thing, True, pygame.Color("white"))
+    if kind == 'invmax':
+        text[0] = log.render("You inventory is full", True, pygame.Color("white"))
     if kind == 'eqarmor':
         text[0] = log.render("You put on the " + thing, True, pygame.Color("white"))
     if kind == 'unarmor':
@@ -1143,7 +1150,7 @@ bosses = [
 Enemy("Troll", 30, 25, 13, 13, 30, troll),
 Enemy("Skeleton", 75, 25, 5, 4, 80, skeleton),
 Enemy("Big-Eagle", 200, 30, 6, 10, 0, bigeagle),
-Enemy("King Pig", 250, 15, 5, 20, 300, guinea)
+Enemy("King Pig", 250, 15, 5, 20, 300, kingpig)
 ]
 
 #good luck figuring what this does
@@ -1233,6 +1240,7 @@ def getmon(x, y, kind = 0):
 
     if kind != 0:
         if enemies[kind].dead == False and enemies[kind].currentloc == ((0, 0), (0, 0)):
+            enemies[kind].image = pygame.image.load('graphics/guinea2.png').convert()
             enemies[kind].enx = x
             enemies[kind].eny = y
             enemies[kind].spawnx, enemies[kind].spawny = x, y
@@ -1511,6 +1519,8 @@ def pickup():
             backmap[plx][ply] = ground
             invmax += 1
             updatelog('pick', items[i].name)
+        else:
+            updatelog('invmax')
 
 def openinv(itemslist):
     curschar = log.render(">", True, pygame.Color("white"))
@@ -1535,9 +1545,10 @@ def openinv(itemslist):
         screen.blit(textdam, (245, 25))
         tempinvitems = iteminv(itemslist)
         itemslist = restorelistpos(itemslist)
-        invitems = sorted(tempinvitems, key=lambda tempinvitems: tempinvitems.weaptype, reverse=True)
+        if tempinvitems != None:
+            invitems = sorted(tempinvitems, key=lambda tempinvitems: tempinvitems.weaptype, reverse=True)
 
-        if invitems != None:
+        if tempinvitems != None:
             j = 0
             for i in range(len(invitems)):
                 if i > rowmax:  #>=?
@@ -1624,7 +1635,7 @@ def loadmusic(num):
 
 #load in another map file and display it on the screen
 def loadmap(direct):
-    global foremap, backmap, plx, ply, floor, room, upstrpos, downstrpos, keypos, loadedroom, wall, ground, player, bag, treasure, key, flash, flashcount, flashmax, door, bossstart
+    global foremap, backmap, plx, ply, floor, room, upstrpos, downstrpos, keypos, loadedroom, wall, ground, player, bag, treasure, key, flash, flashcount, flashmax, door, bossstart, upstair, downstair, statue
     upstrpos = (0, 0)
     downstrpos = (0, 0)
     keypos = (0, 0)
@@ -1688,25 +1699,35 @@ def loadmap(direct):
     if floor <= 5:
         wall = pygame.image.load('graphics/wall.png').convert()
         ground = pygame.image.load('graphics/ground.png').convert()
+        statue = pygame.image.load('graphics/statue.png').convert()
         player = pygame.image.load('graphics/player.png').convert()
         bag = pygame.image.load('graphics/bag.png').convert()
         treasure = pygame.image.load('graphics/treasure.png').convert()
         key = pygame.image.load('graphics/key.png').convert()
+        upstair = pygame.image.load('graphics/upstair.png').convert()
+        downstair = pygame.image.load('graphics/downstair.png').convert()
     if floor > 5 and floor <= 10:
         wall = pygame.image.load('graphics/wall2.png').convert()
         ground = pygame.image.load('graphics/ground2.png').convert()
+        statue = pygame.image.load('graphics/statue2.png').convert()
         player = pygame.image.load('graphics/player2.png').convert()
         bag = pygame.image.load('graphics/bag2.png').convert()
         treasure = pygame.image.load('graphics/treasure2.png').convert()
         key = pygame.image.load('graphics/key2.png').convert()
         door = pygame.image.load('graphics/door2.png').convert()
+        upstair = pygame.image.load('graphics/upstair2.png').convert()
+        downstair = pygame.image.load('graphics/downstair2.png').convert()
     if floor > 10:
-        wall = pygame.image.load('graphics/wall.png').convert() #wall3 not done yet
+        wall = pygame.image.load('graphics/wall3.png').convert()
         ground = pygame.image.load('graphics/ground3.png').convert()
+        statue = pygame.image.load('graphics/statue3.png').convert()
         player = pygame.image.load('graphics/player3.png').convert()
         bag = pygame.image.load('graphics/bag3.png').convert()
         treasure = pygame.image.load('graphics/treasure3.png').convert()
         key = pygame.image.load('graphics/key3.png').convert()
+        door = pygame.image.load('graphics/door3.png').convert()
+        upstair = pygame.image.load('graphics/upstair3.png').convert()
+        downstair = pygame.image.load('graphics/downstair3.png').convert()
 
     newmap = "rooms/fl" + str(floor) + "r" + str(room) + ".txt"
     newmap = open(newmap, 'r')
@@ -1978,7 +1999,7 @@ while True:
         if event.key == pygame.K_COMMA:
             pickup()
         if event.key == pygame.K_a:
-            floor = 5
+            floor = 11
             room = 0
         if event.key == pygame.K_r:
             xp += 10
