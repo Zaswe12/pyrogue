@@ -1519,8 +1519,9 @@ def pickup():
             backmap[plx][ply] = ground
             invmax += 1
             updatelog('pick', items[i].name)
-        else:
-            updatelog('invmax')
+            return
+    if (backmap[plx][ply] == bag or backmap[plx][ply] == treasure) and invmax >= invmaxmax:
+        updatelog('invmax')
 
 def openinv(itemslist):
     curschar = log.render(">", True, pygame.Color("white"))
