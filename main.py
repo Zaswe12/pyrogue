@@ -1,7 +1,6 @@
 import pygame
 import sys
 import random
-import pdb
 
 pygame.init()
 
@@ -9,11 +8,10 @@ screen = pygame.display.set_mode((500, 600))
 pygame.display.set_caption("A Hot Tennessee Knight")
 pygame.event.set_allowed(None)
 pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN])
-pygame.font.init()
 
-log = pygame.font.SysFont("monospace", 14)
-med = pygame.font.SysFont("monospace", 28)
-big = pygame.font.SysFont("monospace", 50)
+log = pygame.font.Font("DroidSansMono.ttf", 14)
+med = pygame.font.Font("DroidSansMono.ttf", 28)
+big = pygame.font.Font("DroidSansMono.ttf", 50)
 text = [log.render("", True, pygame.Color("black")) for i in range(5)] #for the updatelog function
 
 debug = False
@@ -1999,11 +1997,6 @@ while True:
             openinv(items)
         if event.key == pygame.K_COMMA:
             pickup()
-        if event.key == pygame.K_a:
-            floor = 11
-            room = 0
-        if event.key == pygame.K_r:
-            xp += 10
 
     if pygame.mixer.get_busy() == False:
         if floor <= 5:
