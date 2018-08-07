@@ -10,7 +10,7 @@ i to open and close inventory
 Enter to select  
 ,(comma) to pick up items  
 <(less than) to go up stairs  
->(greater than) to go down stairs
+\>(greater than) to go down stairs
 
 # Install
 Download and install python 2.7.*  
