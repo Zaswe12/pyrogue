@@ -1,5 +1,7 @@
 # A Hot Tennessee Knight  
-A small project I am working on.  
+My first project that was something more than fizzbuzz  
+It has lots of issues and slows down a lot once you get to floor 11  
+I managed to learn a lot from it, though
 requires pygame  
 graphics by Dan  
 tested with python 2.7.12 and pygame 1.9.1
